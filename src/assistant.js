@@ -195,7 +195,8 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
         kbCache = { mtime: -1, ptr: null };
       }
     }
-    return { kb: kbCache.ptr?.kb || ns.kb, kbpriv: kbCache.ptr?.kbpriv || ns.kbpriv, kbwf: kbCache.ptr?.kbwf || "" };
+    // KB_NAMESPACE: dung chung 1 kho tai lieu da nap cho nhieu namespace bo nho (vd demo.js).
+    return { kb: kbCache.ptr?.kb || process.env.KB_NAMESPACE || ns.kb, kbpriv: kbCache.ptr?.kbpriv || ns.kbpriv, kbwf: kbCache.ptr?.kbwf || "" };
   }
 
   // Ghi noi dung "day:" vao file addendum (kem ai day + gio) de Ha duyet/merge

@@ -35,7 +35,7 @@ the cracks:
 | Three reps report the same error within an hour, to three different agents | Nobody sees the pattern | Shared case log → "⚠️ possible widespread incident: 3 SRs, same error" |
 | A discussion spans 30 messages | Next week it's gone | When the chat goes idle, each topic is summarised into a long-term memory for that group |
 
-`demo-scenarios.md` has the scripted versions; `node src/demo.js` replays them on mainnet.
+`demo-scenarios.md` has the scripted versions; `node src/demo.js` replays them on mainnet with English subtitles (the video demo).
 
 ## Architecture
 
