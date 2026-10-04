@@ -1,0 +1,16 @@
+services:
+  l1-assistant:
+    build: .
+    env_file: .env
+    restart: unless-stopped
+    # Docs mounted read-only so you can edit mock-sharepoint without rebuilding the image.
+    volumes:
+      - ./mock-sharepoint:/app/mock-sharepoint:ro
+      - ./mock-data:/app/mock-data:ro
+      - ./logs:/app/logs
+      - ./state:/app/state
+      - ./kb-cache:/app/kb-cache
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

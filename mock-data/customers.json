@@ -1,0 +1,17 @@
+{
+  "_note": "Khach hang / SR / outlet HU CAU de demo lich su cuoc goi",
+  "npp": [
+    { "code": "NPP-HCM-01", "name": "NPP Minh Phat (gia)", "region": "HCM" },
+    { "code": "NPP-HN-02", "name": "NPP Hong Ha (gia)", "region": "HN" }
+  ],
+  "sr": [
+    { "code": "SR-1042", "name": "SR Tuan (gia)", "npp": "NPP-HCM-01", "route": "R-HCM-012" },
+    { "code": "SR-1077", "name": "SR Hoa (gia)", "npp": "NPP-HCM-01", "route": "R-HCM-015" },
+    { "code": "SR-2031", "name": "SR Nam (gia)", "npp": "NPP-HN-02", "route": "R-HN-004" }
+  ],
+  "outlets": [
+    { "code": "OUT-0007", "name": "Tap hoa Co Ba (gia)", "route": "R-HCM-012" },
+    { "code": "OUT-0019", "name": "Cua hang Sau Tien (gia)", "route": "R-HCM-012" },
+    { "code": "OUT-0102", "name": "Tap hoa Ngoc Lan (gia)", "route": "R-HN-004" }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "_note": "Thanh vien team L1 HU CAU de demo",
+  "members": [
+    { "id": "an", "name": "An", "shift": "sang" },
+    { "id": "binh", "name": "Binh", "shift": "sang" },
+    { "id": "chi", "name": "Chi", "shift": "chieu" },
+    { "id": "dung", "name": "Dung", "shift": "chieu" }
+  ]
+}

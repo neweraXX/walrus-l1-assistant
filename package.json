@@ -1,0 +1,30 @@
+{
+  "name": "walrus-l1-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "L1 support team assistant on Zalo with cross-session, cross-person memory on Walrus Memory (MemWal)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "api": "node src/httpServer.js",
+    "cli": "node src/cli.js",
+    "check": "node src/check.js",
+    "index-kb": "node src/kbIndex.js",
+    "demo": "node src/demo.js",
+    "selftest": "node src/selftest.js"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.55",
+    "@mysten-incubation/memwal": "0.1.8",
+    "@mysten/seal": "1.4.13",
+    "@mysten/sui": "2.31.3",
+    "@mysten/walrus": "1.2.28",
+    "ai": "7.0.113",
+    "dotenv": "18.0.3",
+    "zod": "4.6.5"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+!.env.example
+logs/
+state/
+kb-cache/
+kb-version.json
+kb-merged.json
+knowledge-real/
+*.log
+.DS_Store
