@@ -7,6 +7,8 @@ import { loadKnowledge, loadDirectory } from "./knowledge.js";
 import { createIncidentDetector } from "./incident.js";
 import { createAssistant } from "./assistant.js";
 import { createEvalRunner } from "./eval.js";
+import { createChain } from "./chain.js";
+import { createProof } from "./proof.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TOOL_URL = process.env.TOOL_URL || "";
@@ -22,7 +24,11 @@ export async function bootstrap({ needZalo = true } = {}) {
   const directory = await loadDirectory(path.join(ROOT, "mock-data"));
   const incident = createIncidentDetector({ memory, directory, ...cfg.incident });
   const addendumPath = cfg.addendumFile ? path.join(ROOT, cfg.addendumFile) : "";
+  // Tatum (chi doc chain): co key moi bat. Khong co -> bot chay y nhu cu.
+  const chain = cfg.tatum.apiKey ? createChain({ apiKey: cfg.tatum.apiKey, rpcUrl: cfg.tatum.rpcUrl, owner: cfg.tatum.wallet }) : null;
+  const proof = chain ? createProof({ chain, accountId: cfg.memwal.accountId, logPath: path.join(ROOT, "logs", "proof.jsonl") }) : null;
   const assistant = createAssistant({
+    proof,
     memory,
     ask,
     askStrong,
@@ -64,5 +70,5 @@ export async function bootstrap({ needZalo = true } = {}) {
     casesPath: path.join(ROOT, "eval", "cases.json"),
     lastPath: path.join(ROOT, "logs", "eval-last.json"),
   });
-  return { cfg, memory, ask, knowledge, assistant, addendumPath, evalRunner };
+  return { cfg, memory, ask, knowledge, assistant, addendumPath, evalRunner, chain };
 }

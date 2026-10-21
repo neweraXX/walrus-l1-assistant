@@ -89,3 +89,9 @@ export function fmtTaught({ question, body, t, unverified, userName, when, auto 
   if (auto) lines.push("_Mình hiểu đây là chỉ dẫn nên đã tự ghi nhớ. Nếu không phải, báo mình nhé._");
   return lines.join("\n");
 }
+
+// Tin bao sau khi kiem chung tren chain. L1 khong can biet chain: chi "luu chac chan" hay "nho day lai".
+export function fmtProof(r) {
+  if (r?.ok) return `{green}🔒 Đã lưu chắc chắn{/green} — kiến thức ${md(r.author || "")} vừa dạy đã vào bộ nhớ chung, cả team hỏi là thấy.`;
+  return "{orange}⚠️ Kiến thức vừa dạy chưa lưu được vào bộ nhớ chung.{/orange} Nhờ dạy lại giúp mình.";
+}

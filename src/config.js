@@ -13,6 +13,11 @@ export function loadConfig({ needZalo = true } = {}) {
       accountId: required("MEMWAL_ACCOUNT_ID"),
       serverUrl: process.env.MEMWAL_SERVER_URL || "https://relayer.memory.walrus.xyz",
     },
+    tatum: {
+      apiKey: process.env.TATUM_API_KEY || "",
+      rpcUrl: process.env.TATUM_SUI_RPC || "https://sui-mainnet.gateway.tatum.io",
+      wallet: process.env.WALLET_ADDRESS || "", // trong -> doc owner tu MemWalAccount tren chain
+    },
     namespacePrefix: process.env.NAMESPACE_PREFIX || "l1demo",
     knowledgeDir: process.env.KNOWLEDGE_DIR || "mock-sharepoint",
     addendumFile: process.env.ADDENDUM_FILE || "",

@@ -99,6 +99,8 @@ async function onMessage(message) {
     // dinh, chi doc. Token Jira khong nam o bot nay.
     if (replies[0]?.jira) replies = await runJiraTool(replies[0].jira, { userId, userName });
     for (const r of replies) if (typeof r === "string") await zalo.sendMessage(chatId, r);
+    // Tin bao them sau khi kiem chung tren chain (vd "Da luu chac chan") - khong bat cho.
+    replies.followUp?.then((msg) => msg && zalo.sendMessage(chatId, msg)).catch((err) => console.error("[proof] khong gui duoc:", err.message));
   } catch (err) {
     console.error("[assistant] loi:", err);
     await zalo.sendMessage(chatId, `Bot gặp lỗi khi xử lý: ${err.message}`).catch(() => {});

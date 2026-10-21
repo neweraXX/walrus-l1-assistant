@@ -4,7 +4,7 @@ import path from "node:path";
 import { extractCodes, stamp, nowStamp, parseStamp } from "./memory.js";
 import { createLocalKb } from "./localKb.js";
 import { geocode, getWeatherAt } from "./weather.js";
-import { md, fmtWorkflow, fmtMissing, fmtTaught, fmtClarify, shortDate } from "./format.js";
+import { md, fmtWorkflow, fmtMissing, fmtTaught, fmtClarify, fmtProof, shortDate } from "./format.js";
 
 const HELP = [
   "L1 Assistant - cách dùng:",
@@ -173,7 +173,7 @@ const TOPIC_MAX = 6;
 const escRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const APPROVER_RE = new RegExp(`^(?:${(process.env.KB_APPROVERS || "Ha").split(",").map((x) => escRe(x.trim())).join("|")})\\b`, "i");
 
-export function createAssistant({ memory, ask, askStrong = ask, knowledge, directory, incident, usageLogPath, addendumPath, includePrivateKb, kbPointerPath, kbCacheDir, statePath, sessionIdleMs = SESSION_IDLE_MS, jiraTools = false, runTool = null, mergedPath = "" }) {
+export function createAssistant({ memory, ask, askStrong = ask, knowledge, directory, incident, usageLogPath, addendumPath, includePrivateKb, kbPointerPath, kbCacheDir, statePath, sessionIdleMs = SESSION_IDLE_MS, jiraTools = false, runTool = null, mergedPath = "", proof = null }) {
   const { ns } = memory;
   const localKb = createLocalKb({ cacheDir: kbCacheDir, addendumPath, parseStamp });
   const RECENT_TAUGHT_MS = 15 * 60 * 1000; // Walrus can ~30s+ moi index xong 1 lan "day:"
@@ -683,7 +683,10 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
       // CUNG 1 moc gio cho ban Walrus + addendum (khoa "nguoi day|gio" cua kb-merged.json).
       const now = new Date();
       const when = nowStamp(now);
-      writes.push(memory.remember(ns.knowledge, stamp(userName, `${unverified ? `${UNVERIFIED_TAG} ` : ""}${content}`, codes, now)));
+      const taught = memory.remember(ns.knowledge, stamp(userName, `${unverified ? `${UNVERIFIED_TAG} ` : ""}${content}`, codes, now));
+      writes.push(taught);
+      // Xac nhan tren chain (Tatum) roi bao them 1 tin "da luu chac chan" - chay nen, khong bat cho.
+      if (proof) replies.followUp = taught.then((w) => proof.confirm(w, { namespace: ns.knowledge, author: userName })).then(fmtProof);
       await appendAddendum(userName, unverified ? `${content}\n${UNVERIFIED_TAG}` : content, when);
       replies.push(fmtTaught({ question: situation, body, t, unverified, userName, when, auto }));
     } else if (kind === "note") {

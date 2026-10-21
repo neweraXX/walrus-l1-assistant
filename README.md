@@ -104,6 +104,25 @@ The relayer is sometimes slow (we measured recall 0.7–13 s, plus 502/504 `RECA
 the bot searches an offline BM25 copy of the same chunks (`kb-cache/`) and says so in the answer
 ("(bản dự phòng)") instead of pretending nothing exists.
 
+## Total Recall build (Tatum × Walrus Memory, 20 Oct – 10 Nov 2026)
+
+New in this build window (branch `total-recall`, see [CHANGELOG](CHANGELOG.md)). Design rule: **L1 users never see the word "blockchain"**. They only see a bot that is more reliable. The chain work runs underneath, for the admin.
+
+| Problem in v1 | What Tatum Sui RPC does now |
+|---|---|
+| `remember()` returns before the memory is really stored, so "taught" knowledge could silently fail | `src/proof.js`: after the relayer finishes, find the Walrus `Blob` object on Sui (matched by `blob_id`) through Tatum and check it is **certified**. Only then the bot posts "🔒 Đã lưu chắc chắn" (saved for sure). Every proof goes to `logs/proof.jsonl` (who taught, when, object id, tx digest, end epoch) |
+| Walrus blobs expire at `storage.end_epoch` and are then gone for good; the bot would just "forget" | `src/ops.js`: reads the current Walrus epoch and every memory blob's `end_epoch`, warns the admin weeks ahead, and separates bot knowledge (blobs with MemWal metadata) from other blobs |
+| Nobody watched the wallet that pays for storage | Same report: WAL / SUI balance with a low-balance warning |
+
+Why Tatum: Sui public fullnodes have deprecated JSON-RPC; Tatum's Sui gateway still serves the read methods we need (`suix_getOwnedObjects` filtered by the Walrus `Blob` type, `suix_getDynamicFields` for MemWal metadata, `suix_queryTransactionBlocks`, `sui_multiGetObjects`, `suix_getAllBalances`). `src/chain.js` is **read-only**: it never signs anything and needs no wallet key.
+
+```bash
+# health report (needs TATUM_API_KEY + MEMWAL_ACCOUNT_ID in .env)
+node --env-file=.env src/ops.js
+```
+
+First real run (21 Oct): 1,531 blobs (2.96 MB), all certified; bot knowledge safe until ≈ Apr 2027 (Walrus epoch 42, blobs end at 55–56); 5 non-memory blobs expiring in ~6–8 weeks correctly flagged as "not bot knowledge"; 41 Tatum calls, 0 errors, 17.5 s. A test `remember()` was confirmed on chain ~1 s after the relayer finished (3 Tatum calls).
+
 ## Run it (everything inside Docker — nothing installed on the host)
 
 ```bash
