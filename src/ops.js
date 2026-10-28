@@ -1,4 +1,4 @@
-// Bao cao "suc khoe tri nho" cho admin (Ha), doc tu chain qua Tatum. User L1 khong thay.
+// Bao cao "suc khoe tri nho" cho admin (Tester), doc tu chain qua Tatum. User L1 khong thay.
 //   node --env-file=.env src/ops.js            -> in bao cao
 //   node --env-file=.env src/ops.js --json     -> in so lieu tho (de luu lich su / ve bieu do)
 import { fileURLToPath } from "node:url";
@@ -67,7 +67,7 @@ export function formatHealth(h) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const chain = createChain({ apiKey: process.env.TATUM_API_KEY, rpcUrl: process.env.TATUM_SUI_RPC || undefined, owner: process.env.WALLET_ADDRESS || "" });
+  const chain = createChain({ apiKey: process.env.TATUM_API_KEY, rpcUrl: process.env.TATUM_SUI_RPC || undefined, grpcUrl: process.env.TATUM_SUI_GRPC || undefined, transport: "grpc", owner: process.env.WALLET_ADDRESS || "" });
   const h = await collectHealth({ chain, accountId: process.env.MEMWAL_ACCOUNT_ID });
   console.log(process.argv.includes("--json") ? JSON.stringify(h, null, 2) : formatHealth(h));
 }

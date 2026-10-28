@@ -1,7 +1,7 @@
 // API workflow chay tren localhost cho bot bot production (production) goi sang khi co
 // cau hoi workflow trong group L1 that. KHONG poll Zalo (tranh gianh tin voi
 // bot production) - chi tra loi qua HTTP. Namespace/knowledge cau hinh qua env rieng
-// (l1real) de tach khoi Bot Walrus (group test).
+// (l1-service) de tach khoi Bot Walrus (group test).
 import http from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";

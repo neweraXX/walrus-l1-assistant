@@ -16,6 +16,8 @@ export function loadConfig({ needZalo = true } = {}) {
     tatum: {
       apiKey: process.env.TATUM_API_KEY || "",
       rpcUrl: process.env.TATUM_SUI_RPC || "https://sui-mainnet.gateway.tatum.io",
+      grpcUrl: process.env.TATUM_SUI_GRPC || "https://sui-mainnet-grpc.gateway.tatum.io:443",
+      transport: process.env.TATUM_TRANSPORT || "grpc",
       wallet: process.env.WALLET_ADDRESS || "", // trong -> doc owner tu MemWalAccount tren chain
     },
     namespacePrefix: process.env.NAMESPACE_PREFIX || "l1demo",

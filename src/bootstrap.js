@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { loadConfig } from "./config.js";
 import { createMemory } from "./memory.js";
@@ -9,11 +10,14 @@ import { createAssistant } from "./assistant.js";
 import { createEvalRunner } from "./eval.js";
 import { createChain } from "./chain.js";
 import { createProof } from "./proof.js";
+import { createEscalationLearner } from "./escalation.js";
+import { createRouteEval } from "./routeEval.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const TOOL_URL = process.env.TOOL_URL || "";
+
 
 export async function bootstrap({ needZalo = true } = {}) {
+  const TOOL_URL = process.env.TOOL_URL || "";
   const cfg = loadConfig({ needZalo });
   const memory = createMemory({ ...cfg.memwal, prefix: cfg.namespacePrefix });
   const ask = createLlm(cfg.llm);
@@ -25,9 +29,28 @@ export async function bootstrap({ needZalo = true } = {}) {
   const incident = createIncidentDetector({ memory, directory, ...cfg.incident });
   const addendumPath = cfg.addendumFile ? path.join(ROOT, cfg.addendumFile) : "";
   // Tatum (chi doc chain): co key moi bat. Khong co -> bot chay y nhu cu.
-  const chain = cfg.tatum.apiKey ? createChain({ apiKey: cfg.tatum.apiKey, rpcUrl: cfg.tatum.rpcUrl, owner: cfg.tatum.wallet }) : null;
+  const chain = cfg.tatum.apiKey ? createChain({ ...cfg.tatum, owner: cfg.tatum.wallet }) : null;
   const proof = chain ? createProof({ chain, accountId: cfg.memwal.accountId, logPath: path.join(ROOT, "logs", "proof.jsonl") }) : null;
+  const namespace = process.env.ESCALATION_NS || `${cfg.namespacePrefix}:escalation`;
+  const labelsPath = path.resolve(ROOT, process.env.HOLDOUT_LABELS || "eval/holdout/holdout-labels.json");
+  const textPath = path.resolve(ROOT, process.env.HOLDOUT_TEXT || "eval/holdout/holdout-text.json");
+  let excludeKeys = new Set();
+  try {
+    const labels = JSON.parse(await readFile(labelsPath, "utf8"));
+    if (!Array.isArray(labels.items) || labels.items.some((r) => typeof r.key !== "string" || !r.key)) throw new Error("Invalid holdout keys");
+    excludeKeys = new Set(labels.items.map((r) => r.key));
+  } catch (error) { if (error.code !== "ENOENT") throw error; }
+  // ticket_da_dong / ticket_goi_y: private gateway, not included.
+  const runTool = async (tool, user) => {
+    if (!TOOL_URL) throw new Error("Ticket gateway is not configured");
+    const response = await fetch(TOOL_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...tool, ...user }), signal: AbortSignal.timeout(60000) });
+    if (!response.ok) throw new Error("Ticket gateway failed");
+    return (await response.json()).text;
+  };
+  const escalation = createEscalationLearner({ runTool, ask, memory, proof, namespace, excludeKeys, statePath: path.join(ROOT, "state", "escalation.json") });
+  const routeEval = createRouteEval({ ask: createLlm({ ...cfg.llm, fallbackModels: [], textTimeoutMs: 25000 }), memory, namespace, labelsPath, textPath, logPath: path.join(ROOT, "logs", "route-eval.jsonl") });
   const assistant = createAssistant({
+    escalationNamespace: namespace,
     proof,
     memory,
     ask,
@@ -70,5 +93,5 @@ export async function bootstrap({ needZalo = true } = {}) {
     casesPath: path.join(ROOT, "eval", "cases.json"),
     lastPath: path.join(ROOT, "logs", "eval-last.json"),
   });
-  return { cfg, memory, ask, knowledge, assistant, addendumPath, evalRunner, chain };
+  return { cfg, memory, ask, knowledge, assistant, addendumPath, evalRunner, chain, escalation, routeEval };
 }

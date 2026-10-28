@@ -11,7 +11,7 @@ const isRateLimit = (err) => err?.statusCode === 429 || /too many requests|resou
 // Endpoint OpenAI-compatible -> doi qua lai Gemini / DeepSeek / Qwen chi bang .env.
 // Model chinh hay bi 503 luc qua tai -> retry it roi chuyen sang model du phong,
 // thay vi de SDK tu retry 3 lan (~16s) roi chet.
-export function createLlm({ baseURL, apiKey, model, fallbackModels = [] }) {
+export function createLlm({ baseURL, apiKey, model, fallbackModels = [], textTimeoutMs = 25000 }) {
   const provider = createOpenAICompatible({ name: "llm", baseURL, apiKey });
   const models = [model, ...fallbackModels];
 
@@ -30,6 +30,7 @@ export function createLlm({ baseURL, apiKey, model, fallbackModels = [] }) {
             : { prompt }),
           temperature: 0.2,
           maxRetries: 1,
+          abortSignal: AbortSignal.timeout(textTimeoutMs),
         });
         return (text || "").trim();
       } catch (err) {

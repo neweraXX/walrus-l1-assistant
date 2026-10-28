@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "buildCommand": "mkdir -p public && cp demo/public/index.html public/index.html",
+  "outputDirectory": "public",
+  "functions": {
+    "api/*.js": { "maxDuration": 60, "includeFiles": "demo/data/*.json" }
+  }
+}

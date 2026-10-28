@@ -90,8 +90,46 @@ export function fmtTaught({ question, body, t, unverified, userName, when, auto 
   return lines.join("\n");
 }
 
-// Tin bao sau khi kiem chung tren chain. L1 khong can biet chain: chi "luu chac chan" hay "nho day lai".
+function routeHintConflicts(hint, escalate) {
+  const normalize = (text) => String(text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const wf = normalize(escalate).split(/\b(?:khi|neu|kem)\b/)[0].trim();
+  if (!wf) return false;
+  if (/\b(?:khong|ko)\b|\bl1 tu xu ly\b/.test(wf)) return hint.route !== "L1";
+  if (hint.route === "L1") return true;
+  const route = /\b(l1|l2|vendor)\b/.exec(wf)?.[1]?.toUpperCase();
+  if (route && route !== hint.route) return true;
+  const words = (text) => normalize(text).replace(/\b(?:chuyen|cho|lien he|bao|escalate|l1|l2|vendor|noi bo|phu trach|xu ly|team|nhom|anh|chi)\b/g, " ")
+    .trim().split(/\s+/).filter(Boolean);
+  const a = words(wf), b = words(hint.target);
+  return !!(a.length && b.length && !a.every((x) => b.includes(x)) && !b.every((x) => a.includes(x)));
+}
+
+export function fmtRouteHint(hint, { escalate, sourceRef, language = "vi", plain = false } = {}) {
+  if (!hint) return "";
+  const clean = (text, max) => String(text || "").replace(/\b(?:blockchain|chain|walrus)\b/gi, "")
+    .replace(/\s+/g, " ").trim().slice(0, max);
+  const target = clean(hint.target, 80);
+  if (language === "en") {
+    const destination = hint.route === "L1" ? "L1 handled it" : `usually routed to ${hint.route}${target ? ` ${target}` : ""}`;
+    const action = clean(hint.l1Action, 140);
+    const text = `↪ Similar past issues: ${destination} (${hint.count}/${hint.total} tickets).${action ? `\nL1 should: ${action}` : ""}`;
+    return plain ? text : md(text);
+  }
+  const last = /^(\d{4})-(\d{2})-(\d{2})$/.exec(hint.lastDate || "");
+  const stats = `${hint.count}/${hint.total} lần${hint.route !== "L1" && last ? `, gần nhất ${last[3]}/${last[2]}` : ""}`;
+  let text = hint.route === "L1"
+    ? `↪️ Lỗi tương tự trước đây: L1 tự xử lý được (${stats}).`
+    : `↪️ Lỗi tương tự trước đây: thường chuyển **${md(`${hint.route}${target ? ` ${target}` : ""}`)}** (${stats}).`;
+  if (/\bWF\d+\b/i.test(sourceRef || "") && routeHintConflicts(hint, escalate)) text += " (khác hướng dẫn WF — báo Admin kiểm)";
+  const action = clean(hint.l1Action, 140);
+  if (action) text += `\nL1 nên: ${md(action)}`;
+  return text;
+}
+
+
 export function fmtProof(r) {
+  if (r?.status === "pending") return "⏳ Đang xác nhận lưu trữ, mình sẽ báo lại.";
   if (r?.ok) return `{green}🔒 Đã lưu chắc chắn{/green} — kiến thức ${md(r.author || "")} vừa dạy đã vào bộ nhớ chung, cả team hỏi là thấy.`;
-  return "{orange}⚠️ Kiến thức vừa dạy chưa lưu được vào bộ nhớ chung.{/orange} Nhờ dạy lại giúp mình.";
+  return "{orange}⚠️ Kiến thức vừa dạy chưa lưu được vào bộ nhớ chung.{/orange} Nhờ dạy lại giúp mình (hoặc báo Admin).";
 }

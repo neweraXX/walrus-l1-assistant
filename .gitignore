@@ -10,3 +10,7 @@ kb-merged.json
 knowledge-real/
 *.log
 .DS_Store
+.test-tmp/
+.test-output.txt
+demo/.env.local
+demo/.seed-state.json

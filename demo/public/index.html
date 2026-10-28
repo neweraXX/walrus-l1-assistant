@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="A support bot that learns where to route recurring issues from closed tickets, with verifiable Walrus Memory.">
+<title>Total Recall · A support bot that learns</title>
+<style>
+:root{--ink:#132d32;--muted:#526c70;--line:#cededb;--teal:#126757;--wash:#edf4f0;--paper:#fffef9;--gold:#f4d985;--blue:#e5eff5}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,textarea,select,input{font:inherit}button,a,input,textarea,select{outline-offset:4px}button{cursor:pointer;border:1px solid var(--line);border-radius:9px;padding:9px 14px;color:var(--ink);background:white;font-weight:600}button:hover{border-color:var(--teal)}button:disabled{opacity:.55;cursor:wait}button.primary{background:var(--teal);border-color:var(--teal);color:white}button.small{font-size:12px;padding:6px 9px}a{color:var(--teal)}header{max-width:1510px;margin:auto;padding:36px 28px 24px}.eyebrow{font-size:11px;letter-spacing:.17em;text-transform:uppercase;font-weight:750;display:flex;align-items:center;gap:9px}.dot{width:9px;height:9px;background:var(--teal);border-radius:50%;display:inline-block}h1{font-size:clamp(30px,4vw,49px);line-height:1.13;letter-spacing:-.045em;margin:16px 0 12px;max-width:850px}h1 span{color:var(--teal)}header p{max-width:720px;margin:0;color:var(--muted)}.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.pill,.badge{display:inline-block;font-size:11px;font-weight:650;border-radius:6px;padding:4px 8px;background:#e6efea;color:#21574c}.pill{border:1px solid #c7dbd2;background:transparent}.badge.vendor{background:#efe9f7;color:#644482}.badge.l2{background:var(--blue);color:#355d7a}.badge.pending{background:#fff2cd;color:#725e24}.badge.blocked{background:#f8e6df;color:#91472f}main{max-width:1510px;margin:auto;padding:0 28px 36px}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:8px 0 16px}.toolbar p{font-size:12px;color:var(--muted);margin:0}.tabs{display:none}.grid{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:16px;align-items:start}.panel{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}.panel-head{padding:22px 22px 18px;border-bottom:1px solid var(--line)}.number{color:var(--teal);font-size:11px;letter-spacing:.12em;font-weight:750}h2{margin:7px 0 5px;font-size:20px;letter-spacing:-.025em}h3{margin:0 0 8px;font-size:15px;line-height:1.4}.subtle{color:var(--muted);font-size:12px;margin:0}.panel-body{padding:20px}.rule{padding:16px 0;border-bottom:1px solid var(--line)}.rule:first-child{padding-top:0}.rule:last-child{border-bottom:0;padding-bottom:0}.rule-top{display:flex;gap:8px;align-items:center;justify-content:space-between}.rule p{font-size:13px;margin:8px 0}.rule .stats{color:var(--muted);font-size:11px}.teach{border-top:1px solid var(--line);padding:18px 20px;background:#f5f8f3}details>summary{cursor:pointer;font-weight:650;font-size:13px}label{display:block;font-size:12px;font-weight:650;margin:14px 0 6px}textarea,select{width:100%;border:1px solid #bacec7;border-radius:8px;background:white;padding:10px;color:var(--ink)}textarea{resize:vertical;line-height:1.5}textarea.json{font:11px/1.6 ui-monospace,SFMono-Regular,monospace}.form-actions{margin-top:12px;display:flex;gap:10px;align-items:center}.switch{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:#f1f6ee;margin:16px 0}.switch label{margin:0;font-size:13px}.switch input{accent-color:var(--teal);width:19px;height:19px}.output{border-top:1px solid var(--line);padding-top:20px;margin-top:22px;min-height:160px}.output p{margin:10px 0;font-size:14px;white-space:pre-wrap}.hint{border-left:3px solid var(--teal);background:#edf4ec;padding:12px 14px;font-size:13px;white-space:pre-wrap}.status{font-size:12px;margin:10px 0 0;color:var(--muted);white-space:pre-wrap}.status.error{color:#a63f2b}.health{background:#f0f5f6;padding:13px 15px;border-radius:9px;margin-bottom:20px;font-size:12px}.health strong{display:block;margin-bottom:3px}.proof-item{padding:16px 0;border-bottom:1px solid var(--line);font-size:12px}.proof-item:first-child{padding-top:0}.proof-item:last-child{border:0}.proof-links{display:grid;grid-template-columns:55px 1fr;gap:5px;margin:10px 0}.proof-links a{font:11px/1.6 ui-monospace,SFMono-Regular,monospace;overflow-wrap:anywhere}.admin-note{background:#fff3d4;border-left:3px solid #d3b765;padding:10px 13px;font-size:11px;margin:18px 0 0}.empty{font-size:13px;color:var(--muted);padding:8px 0}.measure{margin-top:20px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px}.measure-head{display:flex;align-items:center;justify-content:space-between;gap:14px}.measure h2{margin:0 0 5px}.scorecards{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}.scorecard{flex:1;min-width:150px;background:#f1f5f2;border:1px solid var(--line);border-radius:10px;padding:15px}.scorecard strong{font-size:32px;display:block;letter-spacing:-.04em}.scorecard span{font-size:12px;color:var(--muted)}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12px;text-align:left}th,td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:10px;letter-spacing:.06em;text-transform:uppercase}.correct{color:#126757}.wrong{color:#a4422d}.footer{font-size:11px;color:var(--muted);margin-top:18px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}[hidden]{display:none!important}
+@media(min-width:1450px){.grid{grid-template-columns:1fr 1.15fr 1fr}.panel-body{padding:24px}}@media(max-width:1050px){header{padding:28px 20px 20px}main{padding:0 20px 28px}.grid{display:block}.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs button{flex:1;font-size:12px;padding:10px 5px}.tabs button[aria-selected="true"]{background:var(--teal);color:white;border-color:var(--teal)}.panel[data-active="false"]{display:none}}@media(max-width:550px){header{padding:24px 16px 18px}main{padding:0 16px 24px}.toolbar{align-items:start}.toolbar>button{white-space:nowrap}.panel-head,.panel-body{padding:18px}.measure{padding:18px}.measure-head{align-items:flex-start;flex-direction:column}.measure-head button{width:100%}h2{font-size:19px}.meta{gap:5px}.pill{font-size:10px}.tabs button{font-size:11px}.scorecard strong{font-size:28px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow"><span class="dot"></span>Total Recall <span aria-hidden="true">/</span> Smart Agents</div>
+  <h1>Closed tickets become<br><span>the next right escalation.</span></h1>
+  <p>A support bot learns recurring issue categories automatically. L1 gets a practical routing hint. Admins can inspect storage proof and veto a rule.</p>
+  <div class="meta"><span class="pill">24 fictional closed tickets</span><span class="pill">Auto-learn: ≥2 tickets · ≥60% agreement</span><span class="pill">Walrus Memory + Tatum</span></div>
+</header>
+<main>
+  <div class="toolbar"><p>Sunrise Beverages · Fictional systems and tickets<br>Your teaching and admin vetoes stay in your demo session.</p><button id="refresh" class="small">Refresh rules</button></div>
+  <nav class="tabs" aria-label="Demo panels" role="tablist"><button role="tab" aria-selected="true" aria-controls="learn-panel" data-tab="learn-panel">1 · Learned rules</button><button role="tab" aria-selected="false" aria-controls="ask-panel" data-tab="ask-panel">2 · Ask L1</button><button role="tab" aria-selected="false" aria-controls="admin-panel" data-tab="admin-panel">3 · Admin proof</button></nav>
+  <div class="grid">
+    <section id="learn-panel" class="panel" data-active="true" aria-labelledby="learn-title">
+      <div class="panel-head"><span class="number">01 / SHARED EXPERIENCE</span><h2 id="learn-title">What the bot learned</h2><p class="subtle">Rules emerge from closed tickets. No approval queue.</p></div>
+      <div class="panel-body"><div id="rules" aria-live="polite"><p class="empty">Loading learned rules…</p></div><p id="rules-status" class="status" role="status"></p></div>
+      <div class="teach"><details id="teach-details"><summary>Teach from a closed ticket</summary><p class="subtle" style="margin-top:10px">Use a fictional closed ticket. A single new issue stays as evidence until the confidence threshold is met.</p>
+        <form id="teach-form"><label for="sample">Start with an example</label><select id="sample"><option value="">Loading examples…</option></select><label for="ticket-json">Closed ticket JSON · edit or paste</label><textarea class="json" id="ticket-json" rows="12" spellcheck="false" required></textarea><div class="form-actions"><button type="submit" class="primary" id="teach-button">Learn this ticket</button></div></form><p id="teach-status" class="status" role="status"></p>
+      </details></div>
+    </section>
+    <section id="ask-panel" class="panel" data-active="false" aria-labelledby="ask-title">
+      <div class="panel-head"><span class="number">02 / EVERYDAY SUPPORT</span><h2 id="ask-title">L1 asks</h2><p class="subtle">L1 sees only this.</p></div>
+      <div class="panel-body"><form id="ask-form"><label for="question" style="margin-top:0">What does the next ticket say?</label><textarea id="question" rows="5" required maxlength="3000">DistributorHub sign-in requests approval on a phone that was replaced. The second-factor enrollment is still linked to the old device. Who should handle this?</textarea>
+        <div class="switch"><label for="memory">Memory <strong id="memory-label">ON</strong><br><span class="subtle">Learn from past closed tickets</span></label><input id="memory" type="checkbox" checked></div><button class="primary" id="ask-button" type="submit">Ask the bot</button></form><p id="ask-status" class="status" role="status"></p><div id="answer" class="output" aria-live="polite"><p class="empty">Try the same question with memory OFF and ON to see how the routing changes.</p></div></div>
+    </section>
+    <section id="admin-panel" class="panel" data-active="false" aria-labelledby="admin-title">
+      <div class="panel-head"><span class="number">03 / VERIFY & VETO</span><h2 id="admin-title">Admin proof</h2><p class="subtle">L1 never sees this.</p></div>
+      <div class="panel-body"><div id="health" class="health" aria-live="polite"><strong>Storage health</strong>Waiting for an epoch check…</div><div id="proofs" aria-live="polite"><p class="empty">Proofs appear with the learned rules.</p></div><p id="admin-status" class="status" role="status"></p><p class="admin-note">“Block rule” is the demo equivalent of an admin #sai veto. “Reopen rule” mirrors #mo. Both affect only your session and persist through Walrus Memory.</p></div>
+    </section>
+  </div>
+  <section class="measure" aria-labelledby="measure-title"><div class="measure-head"><div><h2 id="measure-title">Does memory improve routing?</h2><p class="subtle">10 new fictional tickets · same model and instructions · one batch per mode</p></div><button class="primary" id="measure-button">Measure OFF vs ON</button></div><p id="measure-status" class="status" role="status">Runs two LLM calls, with one retry if needed. Scoring labels stay on the server. One run per minute per IP.</p><div id="measurement" aria-live="polite"></div></section>
+  <p class="footer">Total Recall · Tatum × Walrus Memory · Synthetic demo data only. Storage indexing and proof may take a little time. Measured results depend on the configured model; no scores are prefilled.</p>
+</main>
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const node = (tag, text, className) => { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (className) e.className = className; return e; };
+let rules = [], samples = [], health = null, refreshing = false;
+let budget = '', measureAfter = 0;
+let jobs;
+try { jobs = JSON.parse(localStorage.getItem('total-recall-jobs') || '[]'); if (!Array.isArray(jobs)) jobs = []; } catch { jobs = []; }
+const proofs = new Map();
+const saveJobs = () => { try { localStorage.setItem('total-recall-jobs', JSON.stringify(jobs.slice(-40))); } catch {} };
+function status(id, message, error = false) { $(id).textContent = message; $(id).classList.toggle('error', error); }
+async function api(path, body) {
+  const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 57000);
+  try {
+    const response = await fetch('/api/' + path, { method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', signal: controller.signal,
+      headers: { ...(body === undefined ? {} : {'Content-Type': 'application/json'}), ...(budget ? {'X-Demo-Budget': budget} : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+    budget = response.headers.get('X-Demo-Budget') || budget;
+    measureAfter = Math.max(measureAfter, Number(response.headers.get('X-Demo-Measure-After') || 0));
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'The demo service is unavailable.');
+    return data;
+  } catch (e) { if (e.name === 'AbortError') throw new Error('The request timed out. Please try again shortly.'); throw e; }
+  finally { clearTimeout(timer); }
+}
+const routeBadge = (route) => node('span', route, 'badge ' + (route === 'VENDOR' ? 'vendor' : route === 'L2' ? 'l2' : ''));
+function renderRules() {
+  const list = $('rules'); list.replaceChildren();
+  if (!rules.length) list.append(node('p', 'No trusted rules recalled yet. Seed the demo, or teach two closed tickets from the same issue category.', 'empty'));
+  for (const r of rules) {
+    const item = node('article', undefined, 'rule'), top = node('div', undefined, 'rule-top');
+    top.append(node('h3', r.category), routeBadge(r.route)); item.append(top, node('p', r.system + ' → ' + (r.target || 'L1 support')),
+      node('p', r.count + '/' + r.total + ' tickets · ' + Math.round(r.confidence * 100) + '% agreement' + (r.blocked ? ' · blocked in your session' : ' · used automatically'), 'stats'));
+    if (r.blocked) item.append(node('span', 'Admin veto active', 'badge blocked'));
+    list.append(item);
+  }
+  renderProofs();
+}
+function proofLink(label, value, kind) {
+  const fragment = document.createDocumentFragment(); fragment.append(node('span', label));
+  if (value && /^[a-zA-Z0-9]+$/.test(value)) { const a = node('a', value); a.href = 'https://suiscan.xyz/mainnet/' + kind + '/' + encodeURIComponent(value); a.target = '_blank'; a.rel = 'noopener noreferrer'; fragment.append(a); }
+  else fragment.append(node('span', 'Pending'));
+  return fragment;
+}
+function renderProofs() {
+  const list = $('proofs'); list.replaceChildren();
+  if (!rules.length) list.append(node('p', 'No learned rules to verify yet.', 'empty'));
+  for (const r of rules) {
+    const item = node('article', undefined, 'proof-item'); item.append(node('h3', r.id + ' · ' + r.category));
+    const proof = proofs.get(r.jobId);
+    if (proof?.status === 'confirmed') {
+      const confirmed = proof.proof || proof;
+      const links = node('div', undefined, 'proof-links'); links.append(proofLink('Object', confirmed.objectId, 'object'), proofLink('Tx', confirmed.txDigest, 'tx'));
+      item.append(node('span', 'Verified via Tatum Sui gRPC', 'badge'), links,
+        node('p', 'End epoch ' + confirmed.endEpoch + ' · Current epoch ' + (confirmed.currentEpoch ?? health?.epoch ?? 'checking…')));
+    } else item.append(node('span', proof?.status === 'failed' ? 'Storage job failed' : 'Storage proof pending', 'badge pending'));
+    const button = node('button', r.blocked ? 'Reopen rule' : 'Block rule', 'small'); button.type = 'button';
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try { const data = await api('block', { key: r.key, action: r.blocked ? 'open' : 'block' }); addJob(data.jobId, 'veto'); status('admin-status', 'Veto update accepted. Waiting for memory indexing before it takes effect.'); }
+      catch(e) { status('admin-status', e.message, true); } finally { button.disabled = false; }
+    }); item.append(button); list.append(item);
+  }
+}
+async function refreshRules() {
+  if (refreshing) return;
+  refreshing = true; $('refresh').disabled = true;
+  try {
+    const data = await api('rules'); rules = data.rules; renderRules(); status('rules-status', rules.filter(r => !r.blocked).length + ' trusted rules available in this session.');
+    for (const r of rules) if (r.jobId && !proofs.has(r.jobId)) addJob(r.jobId, 'rule', false);
+    saveJobs();
+  } catch(e) { status('rules-status', e.message, true); } finally { refreshing = false; $('refresh').disabled = false; }
+}
+async function refreshHealth() {
+  try { health = await api('health'); $('health').replaceChildren(node('strong', 'Storage health · epoch ' + health.epoch), node('span', health.blobCount + ' wallet blobs · ' + (health.safeUntil ? 'Earliest expiry ≈ ' + health.safeUntil : 'No certified blobs yet') + '\n' + health.transport)); renderProofs(); }
+  catch(e) { $('health').replaceChildren(node('strong', 'Storage health unavailable'), node('span', e.message)); }
+}
+function fillTicket() {
+  const ticket = samples[Number($('sample').value)];
+  if (ticket) $('ticket-json').value = JSON.stringify({ ...ticket, key: 'VISIT-' + crypto.randomUUID().toUpperCase() }, null, 2);
+}
+async function loadSamples() {
+  try { samples = (await api('tickets')).tickets; $('sample').replaceChildren(...samples.map((t, i) => { const option = node('option', t.system + ' · ' + t.summary); option.value = String(i); return option; })); fillTicket(); }
+  catch(e) { status('teach-status', e.message, true); }
+}
+function addJob(jobId, kind, persist = true) {
+  if (!jobs.some(j => j.jobId === jobId)) jobs.push({ jobId, kind, attempts: 0 });
+  if (persist) saveJobs();
+}
+let polling = false;
+async function poll() {
+  if (polling || document.hidden || !jobs.length) return;
+  polling = true; let changed = false;
+  // Keep proof traffic modest, even with many seeded rules.
+  await Promise.all(jobs.filter(j => j.attempts < 60).slice(0, 2).map(async (job) => {
+    job.attempts++;
+    try {
+      const proof = await api('proof?job=' + encodeURIComponent(job.jobId)); proofs.set(job.jobId, proof);
+      if (proof.status !== 'pending') {
+        jobs = jobs.filter(j => j !== job);
+        if (job.kind !== 'rule') { changed = true; status(job.kind === 'veto' ? 'admin-status' : 'teach-status', proof.status === 'confirmed' ? 'Storage verified. Refreshing recalled rules…' : 'Storage failed. Please submit a new fictional ticket.', proof.status === 'failed'); }
+      } else { jobs = jobs.filter(j => j !== job); jobs.push(job); }
+    } catch(e) { status('admin-status', e.message, true); if (/Invalid job|not found/i.test(e.message)) jobs = jobs.filter(j => j !== job); }
+  }));
+  renderProofs(); saveJobs(); polling = false;
+  if (changed) { await refreshRules(); setTimeout(refreshRules, 5000); }
+}
+$('refresh').addEventListener('click', refreshRules);
+$('sample').addEventListener('change', fillTicket);
+$('memory').addEventListener('change', () => $('memory-label').textContent = $('memory').checked ? 'ON' : 'OFF');
+$('teach-form').addEventListener('submit', async (event) => {
+  event.preventDefault(); $('teach-button').disabled = true; status('teach-status', 'Learning the issue category from this closed ticket…');
+  try { const ticket = JSON.parse($('ticket-json').value), data = await api('learn', { ticket }); addJob(data.jobId, 'learn'); status('teach-status', data.message + '\nJob accepted. You can keep exploring while storage proof is pending.'); }
+  catch(e) { status('teach-status', e.message, true); } finally { $('teach-button').disabled = false; }
+});
+$('ask-form').addEventListener('submit', async (event) => {
+  event.preventDefault(); $('ask-button').disabled = true; status('ask-status', 'Reading the ticket' + ($('memory').checked ? ' and recalling learned rules…' : '…'));
+  try {
+    const data = await api('ask', { question: $('question').value, memory: $('memory').checked });
+    const top = node('div', undefined, 'rule-top'); top.append(node('h3', data.target || (data.route === 'L1' ? 'L1 support' : 'Receiving team not specified')), routeBadge(data.route));
+    $('answer').replaceChildren(top, node('p', data.reason)); if (data.hint) $('answer').append(node('div', data.hint, 'hint'));
+    status('ask-status', Math.round(data.confidence * 100) + '% prediction confidence · ' + data.rulesUsed.length + ' learned rules supplied');
+  } catch(e) { status('ask-status', e.message, true); } finally { $('ask-button').disabled = false; }
+});
+$('measure-button').addEventListener('click', async () => {
+  $('measure-button').disabled = true; status('measure-status', 'Predicting all 10 tickets with memory OFF and ON. This can take up to 55 seconds…');
+  try {
+    const data = await api('measure', {}), cards = node('div', undefined, 'scorecards');
+    for (const [label, score] of [['Memory OFF', data.off], ['Memory ON', data.on]]) { const card = node('div', undefined, 'scorecard'); card.append(node('span', label), node('strong', Math.round(score.accuracy * 100) + '%'), node('span', score.correct + '/' + score.total + ' routes correct')); cards.append(card); }
+    const table = node('table'), head = node('thead'), row = node('tr');
+    ['New ticket', 'Expected', 'Memory OFF', 'Memory ON'].forEach(t => row.append(node('th', t))); head.append(row); table.append(head); const body = node('tbody');
+    for (const t of data.details) { const tr = node('tr'); tr.append(node('td', t.summary), node('td', t.expected), node('td', (t.offCorrect ? '✓ ' : '× ') + t.off.route, t.offCorrect ? 'correct' : 'wrong'), node('td', (t.onCorrect ? '✓ ' : '× ') + t.on.route, t.onCorrect ? 'correct' : 'wrong')); body.append(tr); }
+    table.append(body); const wrap = node('div', undefined, 'table-wrap'); wrap.append(table); $('measurement').replaceChildren(cards, wrap);
+    const delta = Math.round((data.on.accuracy - data.off.accuracy) * 100); status('measure-status', (delta >= 0 ? '+' : '') + delta + ' percentage points · ' + data.llmCalls + ' LLM calls · ' + (data.elapsedMs / 1000).toFixed(1) + ' seconds. Route accuracy; receiving targets are shown by Ask L1.');
+  } catch(e) { status('measure-status', e.message, true); } finally { $('measure-button').disabled = Date.now() < measureAfter; }
+});
+setInterval(() => { if (!$('measure-status').textContent.startsWith('Predicting')) $('measure-button').disabled = Date.now() < measureAfter; }, 1000);
+for (const button of document.querySelectorAll('[data-tab]')) button.addEventListener('click', () => { for (const tab of document.querySelectorAll('[data-tab]')) tab.setAttribute('aria-selected', String(tab === button)); for (const panel of document.querySelectorAll('.grid > .panel')) panel.dataset.active = String(panel.id === button.dataset.tab); });
+// Establish the signed session before issuing parallel requests.
+refreshRules().then(() => Promise.allSettled([loadSamples(), refreshHealth()]));
+setInterval(poll, 5000);
+</script>
+</body>
+</html>

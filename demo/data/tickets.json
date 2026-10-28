@@ -1,0 +1,218 @@
+[
+  {
+    "key": "DEMO-1001",
+    "system": "DistributorHub",
+    "summary": "MFA reset after a handset replacement",
+    "description": "A replacement handset cannot use the existing second-factor enrollment.",
+    "route": "VENDOR",
+    "target": "Northwind Systems",
+    "resolution": "Northwind Systems cleared the hosted MFA enrollment. The user enrolled the new authenticator and signed in."
+  },
+  {
+    "key": "DEMO-1002",
+    "system": "DistributorHub",
+    "summary": "Authenticator enrollment lost",
+    "description": "A user removed the authenticator and cannot obtain a sign-in code.",
+    "route": "VENDOR",
+    "target": "Northwind Systems",
+    "resolution": "Northwind Systems cleared the hosted MFA enrollment. The user enrolled the new authenticator and signed in."
+  },
+  {
+    "key": "DEMO-1003",
+    "system": "DistributorHub",
+    "summary": "Second factor linked to retired phone",
+    "description": "Sign-in requests approval on an old phone that is no longer available.",
+    "route": "VENDOR",
+    "target": "Northwind Systems",
+    "resolution": "Northwind Systems cleared the hosted MFA enrollment. The user enrolled the new authenticator and signed in."
+  },
+  {
+    "key": "DEMO-1004",
+    "system": "DistributorHub",
+    "summary": "Fresh MFA enrollment requested",
+    "description": "The second-factor registration needs to be recreated after a device migration.",
+    "route": "VENDOR",
+    "target": "Northwind Systems",
+    "resolution": "Northwind Systems cleared the hosted MFA enrollment. The user enrolled the new authenticator and signed in."
+  },
+  {
+    "key": "DEMO-1005",
+    "system": "FieldGo",
+    "summary": "Order submission has no assigned route",
+    "description": "The order draft is valid, but its delivery route mapping is missing.",
+    "route": "L2",
+    "target": "Data Team",
+    "resolution": "The Data Team repaired the order-to-route mapping in the reference dataset and confirmed submission."
+  },
+  {
+    "key": "DEMO-1006",
+    "system": "FieldGo",
+    "summary": "Delivery route absent from order",
+    "description": "A newly created order has an empty route association and cannot be submitted.",
+    "route": "L2",
+    "target": "Data Team",
+    "resolution": "The Data Team repaired the order-to-route mapping in the reference dataset and confirmed submission."
+  },
+  {
+    "key": "DEMO-1007",
+    "system": "FieldGo",
+    "summary": "Route mapping unavailable for new order",
+    "description": "The customer profile loads, but the order has no delivery route in the mapping table.",
+    "route": "L2",
+    "target": "Data Team",
+    "resolution": "The Data Team repaired the order-to-route mapping in the reference dataset and confirmed submission."
+  },
+  {
+    "key": "DEMO-1008",
+    "system": "FieldGo",
+    "summary": "Order blocked by missing route link",
+    "description": "The submission check reports that the order-to-route association is blank.",
+    "route": "L2",
+    "target": "Data Team",
+    "resolution": "The Data Team repaired the order-to-route mapping in the reference dataset and confirmed submission."
+  },
+  {
+    "key": "DEMO-1009",
+    "system": "FieldGo",
+    "summary": "App stuck on sync screen",
+    "description": "The synchronization spinner stays visible even after network connectivity returns.",
+    "route": "L1",
+    "target": "",
+    "resolution": "L1 checked connectivity, restarted the app, cleared the local sync queue, and confirmed a successful synchronization."
+  },
+  {
+    "key": "DEMO-1010",
+    "system": "FieldGo",
+    "summary": "Sync progress does not finish",
+    "description": "The app keeps showing a spinning progress indicator after switching Wi-Fi.",
+    "route": "L1",
+    "target": "",
+    "resolution": "L1 checked connectivity, restarted the app, cleared the local sync queue, and confirmed a successful synchronization."
+  },
+  {
+    "key": "DEMO-1011",
+    "system": "FieldGo",
+    "summary": "Synchronization screen frozen",
+    "description": "The sync view remains open while the device has a working connection.",
+    "route": "L1",
+    "target": "",
+    "resolution": "L1 checked connectivity, restarted the app, cleared the local sync queue, and confirmed a successful synchronization."
+  },
+  {
+    "key": "DEMO-1012",
+    "system": "FieldGo",
+    "summary": "App trapped in syncing state",
+    "description": "The progress wheel does not stop after the connection was temporarily lost.",
+    "route": "L1",
+    "target": "",
+    "resolution": "L1 checked connectivity, restarted the app, cleared the local sync queue, and confirmed a successful synchronization."
+  },
+  {
+    "key": "DEMO-1013",
+    "system": "CoolerTrack",
+    "summary": "Sensor pairing lost after battery change",
+    "description": "The sensor is powered on but the app shows it as unpaired after a battery replacement.",
+    "route": "L1",
+    "target": "",
+    "resolution": "L1 removed the stale pairing, enabled Bluetooth, and followed the standard pairing guide. Telemetry resumed."
+  },
+  {
+    "key": "DEMO-1014",
+    "system": "CoolerTrack",
+    "summary": "Device needs pairing again",
+    "description": "A nearby sensor was removed from the paired-device list during a phone restart.",
+    "route": "L1",
+    "target": "",
+    "resolution": "L1 removed the stale pairing, enabled Bluetooth, and followed the standard pairing guide. Telemetry resumed."
+  },
+  {
+    "key": "DEMO-1015",
+    "system": "CoolerTrack",
+    "summary": "Pairing setup interrupted",
+    "description": "The initial connection was interrupted before the pairing process completed.",
+    "route": "L1",
+    "target": "",
+    "resolution": "L1 removed the stale pairing, enabled Bluetooth, and followed the standard pairing guide. Telemetry resumed."
+  },
+  {
+    "key": "DEMO-1016",
+    "system": "CoolerTrack",
+    "summary": "Sensor connection requires re-pairing",
+    "description": "Bluetooth discovery works, but the existing device pairing entry is stale.",
+    "route": "L1",
+    "target": "",
+    "resolution": "L1 removed the stale pairing, enabled Bluetooth, and followed the standard pairing guide. Telemetry resumed."
+  },
+  {
+    "key": "DEMO-1017",
+    "system": "OrderPortal",
+    "summary": "Promotion price differs at checkout",
+    "description": "The campaign price on the product page differs from the price applied to the order.",
+    "route": "L2",
+    "target": "Commerce Data Team",
+    "resolution": "The Commerce Data Team corrected the promotion price mapping and refreshed the pricing reference data."
+  },
+  {
+    "key": "DEMO-1018",
+    "system": "OrderPortal",
+    "summary": "Campaign discount absent from cart",
+    "description": "An active promotion is displayed, but checkout uses the undiscounted catalogue price.",
+    "route": "L2",
+    "target": "Commerce Data Team",
+    "resolution": "The Commerce Data Team corrected the promotion price mapping and refreshed the pricing reference data."
+  },
+  {
+    "key": "DEMO-1019",
+    "system": "OrderPortal",
+    "summary": "Price rule out of date",
+    "description": "The checkout calculation uses an expired promotional price despite a current campaign.",
+    "route": "L2",
+    "target": "Commerce Data Team",
+    "resolution": "The Commerce Data Team corrected the promotion price mapping and refreshed the pricing reference data."
+  },
+  {
+    "key": "DEMO-1020",
+    "system": "OrderPortal",
+    "summary": "Cart promotion price inconsistent",
+    "description": "The published campaign price and cart total disagree for the same product.",
+    "route": "L2",
+    "target": "Commerce Data Team",
+    "resolution": "The Commerce Data Team corrected the promotion price mapping and refreshed the pricing reference data."
+  },
+  {
+    "key": "DEMO-1021",
+    "system": "OrderPortal",
+    "summary": "Hosted payment callback rejected",
+    "description": "The payment completes, but the hosted callback service rejects its signature.",
+    "route": "VENDOR",
+    "target": "Northwind Systems",
+    "resolution": "Northwind Systems corrected the hosted connector signing configuration and replayed the callback successfully."
+  },
+  {
+    "key": "DEMO-1022",
+    "system": "OrderPortal",
+    "summary": "Payment callback fails verification",
+    "description": "The checkout integration refuses a valid payment notification from the hosted connector.",
+    "route": "VENDOR",
+    "target": "Northwind Systems",
+    "resolution": "Northwind Systems corrected the hosted connector signing configuration and replayed the callback successfully."
+  },
+  {
+    "key": "DEMO-1023",
+    "system": "OrderPortal",
+    "summary": "Callback connector rejects paid order",
+    "description": "The hosted payment adapter returns a signature verification failure after payment.",
+    "route": "VENDOR",
+    "target": "Northwind Systems",
+    "resolution": "Northwind Systems corrected the hosted connector signing configuration and replayed the callback successfully."
+  },
+  {
+    "key": "DEMO-1024",
+    "system": "OrderPortal",
+    "summary": "Payment notification rejected by connector",
+    "description": "A confirmed payment notification is rejected by the managed callback adapter.",
+    "route": "VENDOR",
+    "target": "Northwind Systems",
+    "resolution": "Northwind Systems corrected the hosted connector signing configuration and replayed the callback successfully."
+  }
+]

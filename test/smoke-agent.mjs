@@ -60,7 +60,7 @@ const fail = (msg, x) => {
   ];
   const ask = async () => answers[n++] || "{}";
   const memory = { ns, recall: async () => [], remember: async () => ({}), analyze: async () => {} };
-  const dossier = "TICKET SUP-159589: [B2B Portal] Không tìm được mã hàng\nLink: x\nTrạng thái: Waiting for customer · Level: Level 2 · Nhóm: B2B Portal\nNgười raise (reporter): An Nguyen · Đang giữ (assignee): Khoa L2\n\nCOMMENT: NOIDUNGDAI";
+  const dossier = "TICKET SUP-159589: [OrderPortal] Không tìm được mã hàng\nLink: x\nTrạng thái: Waiting for customer · Level: Level 2 · Nhóm: OrderPortal\nNgười raise (reporter): An Nguyen · Đang giữ (assignee): Khoa L2\n\nCOMMENT: NOIDUNGDAI";
   const a = createAssistant({ memory, ask, askStrong: ask, knowledge: {}, directory: {}, incident: { check: async () => null }, usageLogPath: "", addendumPath: "", includePrivateKb: false, kbPointerPath: "", kbCacheDir: "", statePath: "", jiraTools: true, runTool: async () => dossier });
   const r = await a.handle({ chatId: "c3", userId: "u", userName: "Ha", text: "ticket 159589 L1 cần làm gì tiếp" });
   if (!String(r[0]).includes("🧭") || !String(r[0]).includes("L1 nên làm") || String(r[0]).includes("NOIDUNGDAI")) fail("ticket_goi_y", r);

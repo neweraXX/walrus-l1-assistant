@@ -14,6 +14,9 @@
     "check": "node src/check.js",
     "index-kb": "node src/kbIndex.js",
     "demo": "node src/demo.js",
+    "demo:web": "node --env-file=demo/.env.local demo/dev-server.mjs",
+    "demo:seed": "node --env-file=demo/.env.local demo/seed.mjs",
+    "test": "node --test test/*.test.mjs",
     "selftest": "node src/selftest.js"
   },
   "dependencies": {

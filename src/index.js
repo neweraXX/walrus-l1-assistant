@@ -1,10 +1,24 @@
 import { bootstrap } from "./bootstrap.js";
 import { createZaloClient } from "./zalo.js";
+import { withProofContext } from "./proof.js";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const { cfg, assistant, knowledge } = await bootstrap({ needZalo: true });
+const { cfg, assistant, knowledge, escalation, routeEval, chain } = await bootstrap({ needZalo: true });
 const zalo = createZaloClient(cfg.zaloToken);
+const admins = (process.env.ADMIN_USER_IDS || "").split(",").map((v) => v.trim()).filter(Boolean);
+const sendProof = (r) => r?.chatId && zalo.sendMessage(r.chatId, r.ok ? "🔒 Đã lưu chắc chắn" : "⏳ Đang xác nhận lưu trữ.");
+const runEscalation = async (days) => escalation.formatRun(await escalation.runDaily({ days }));
+
+let routeEvalRunning = false;
+async function runRouteEval(chatId, maxRuleId) {
+  if (routeEvalRunning) return zalo.sendMessage(chatId, "Đang đo chuyển tuyến, đợi lượt trước xong nhé.");
+  routeEvalRunning = true;
+  try { await zalo.sendMessage(chatId, routeEval.formatReport(await routeEval.run({ modes: ["off", "memory"], maxRuleId }))); }
+  catch { await zalo.sendMessage(chatId, "Đo chuyển tuyến lỗi, thử lại sau."); }
+  finally { routeEvalRunning = false; }
+}
+// Lich admin: triggered explicitly through direct messages.
 
 let botName = "";
 try {
@@ -64,8 +78,27 @@ async function onMessage(message) {
   // chuyen sau (kbpriv) nen KHONG mo cho nguoi la. Group: van theo ALLOWED_CHAT_IDS.
   const isGroup = chatId.startsWith("zgr-");
   const fromId = message.from?.id || "";
+  const admin = admins.includes(fromId) || admins.includes(chatId);
+  const adminCommand = /^(?:#\s*(?:sai\b|mo\b|C\d)|\/hoc\b|\/do\b)/i.test(message.text || "");
+  if (adminCommand) {
+    if (isGroup || !admin) return;
+    const text = message.text.trim();
+    if (/^\/do\b/i.test(text)) {
+      const match = /^\/do(?:\s+(all|[1-9]\d*))?$/i.exec(text);
+      const maxRuleId = match?.[1] && !/^all$/i.test(match[1]) ? Number(match[1]) : null;
+      if (!match || (maxRuleId !== null && !Number.isSafeInteger(maxRuleId))) return zalo.sendMessage(chatId, "Cú pháp: /do [all|N]");
+      return runRouteEval(chatId, maxRuleId);
+    }
+    if (/^\/hoc\b/i.test(text)) {
+      const match = /^\/hoc(?:\s+([1-9]\d*))?$/.exec(text);
+      return zalo.sendMessage(chatId, match ? await runEscalation(Number(match[1] || 2)) : "Cú pháp: /hoc [ngày]");
+    }
+    const reply = await escalation.handleReply(text, message.from?.display_name, { onProof: sendProof });
+    if (reply) await zalo.sendMessage(chatId, reply);
+    return;
+  }
   if (!isGroup) {
-    if (!cfg.allowedDmUserIds.includes(fromId) && !cfg.allowedDmUserIds.includes(chatId)) {
+    if (!admin && !cfg.allowedDmUserIds.includes(fromId) && !cfg.allowedDmUserIds.includes(chatId)) {
       console.log(`[zalo] bo qua tin rieng tu nguoi khong nam trong ALLOWED_DM_USER_IDS: from=${fromId} chat=${chatId}`);
       return;
     }
@@ -94,7 +127,7 @@ async function onMessage(message) {
   if (text === null || !text) return;
 
   try {
-    let replies = await assistant.handle({ chatId, userId, userName, text });
+    let replies = await withProofContext({ chatId, onLate: sendProof }, () => assistant.handle({ chatId, userId, userName, text }));
     // Cau hoi ticket Jira (chi tin rieng cua Ha) -> goi cong noi bo cua bot production chay cong cu co
     // dinh, chi doc. Token Jira khong nam o bot nay.
     if (replies[0]?.jira) replies = await runJiraTool(replies[0].jira, { userId, userName });

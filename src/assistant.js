@@ -4,7 +4,9 @@ import path from "node:path";
 import { extractCodes, stamp, nowStamp, parseStamp } from "./memory.js";
 import { createLocalKb } from "./localKb.js";
 import { geocode, getWeatherAt } from "./weather.js";
-import { md, fmtWorkflow, fmtMissing, fmtTaught, fmtClarify, fmtProof, shortDate } from "./format.js";
+import { md, fmtWorkflow, fmtMissing, fmtTaught, fmtClarify, fmtProof, fmtRouteHint, shortDate } from "./format.js";
+import { readRouteHint } from "./escalation.js";
+import { selectRules } from "./routeEval.js";
 
 const HELP = [
   "L1 Assistant - cách dùng:",
@@ -17,7 +19,6 @@ const HELP = [
   "- Dạy bot cách fix mới:  dạy: <nội dung>",
   "- Ghi nhớ riêng cho mình:  ghi nhớ: <nội dung>",
   "- Dạy/đính chính không cần gõ \"dạy:\", không cần nhắc lại câu hỏi: bot tự hiểu và ghép với câu vừa hỏi.",
-  "(Bộ nhớ lưu mã hoá trên Walrus.)",
 ].join("\n");
 
 // Dang text bat buoc co dau ":" de khong nham voi cau hoi (vd "ban giao hom nay co gi?").
@@ -29,7 +30,7 @@ const COMMANDS = [
 ];
 
 // Cau hoi ve he thong noi bo ma LLM lo xep vao "kien thuc chung" -> ep ve chua co (chong bia).
-const SYSTEM_RE = /\b(?:fieldgo|dms|e-?contract|survey\s*app|b2b|workflow|npp|outlet|routeid|route|bi|power\s*bi|jira|ticket|servicedesk|portal|sap|cooler|novasoft)\b/i;
+const SYSTEM_RE = /\b(?:fieldgo|distributorhub|e-?contract|survey\s*app|b2b|workflow|npp|outlet|routeid|route|bi|power\s*bi|jira|ticket|servicedesk|portal|sap|cooler|novasoft)\b/i;
 const URL_RE = /https?:\/\/[^\s<>"'`]+/gi;
 // Walrus binh thuong tra 1 kho mat 0.7-3.3s (do 26/09); qua 5s coi nhu cham -> ban du phong.
 // (Truoc la 9s: relayer cham la user cho ~9s.)
@@ -42,7 +43,7 @@ const HANDOVER_Q = /b[aà]n\s*giao|ca\s*tr[uư][oớ]c|ca\s*s[aá]ng|ca\s*chi[e�
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Kien thuc day kem "chua verify / chua chac / co the la..." -> danh dau de khi
-// tra loi bot canh bao, tranh L1 bao khach thong tin chua chac (ca 25/09 E-Contract).
+// tra loi bot canh bao, tranh L1 bao khach thong tin chua chac (ca 25/09 ContractDesk).
 const UNVERIFIED_RE = /ch[uư]a\s*(?:[dđ][uư][oợ]c\s*)?(?:verify|x[aá]c\s*nh[aậ]n|ki[eể]m\s*ch[uứ]ng|ch[aắ]c)|c[oó]\s*th[eể]\s*l[aà]|h[iì]nh\s*nh[uư]|unverified/i;
 const UNVERIFIED_TAG = "(CHƯA VERIFY)";
 
@@ -173,7 +174,7 @@ const TOPIC_MAX = 6;
 const escRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const APPROVER_RE = new RegExp(`^(?:${(process.env.KB_APPROVERS || "Ha").split(",").map((x) => escRe(x.trim())).join("|")})\\b`, "i");
 
-export function createAssistant({ memory, ask, askStrong = ask, knowledge, directory, incident, usageLogPath, addendumPath, includePrivateKb, kbPointerPath, kbCacheDir, statePath, sessionIdleMs = SESSION_IDLE_MS, jiraTools = false, runTool = null, mergedPath = "", proof = null }) {
+export function createAssistant({ memory, ask, askStrong = ask, knowledge, directory, incident, usageLogPath, addendumPath, includePrivateKb, kbPointerPath, kbCacheDir, statePath, sessionIdleMs = SESSION_IDLE_MS, jiraTools = false, runTool = null, mergedPath = "", proof = null, routeHints = !/^(?:0|false|off)$/i.test((process.env.ROUTE_HINTS || "").trim()), escalationNamespace = memory.ns.kb?.replace(/:kb$/, ":escalation") || "l1demo:escalation" }) {
   const { ns } = memory;
   const localKb = createLocalKb({ cacheDir: kbCacheDir, addendumPath, parseStamp });
   const RECENT_TAUGHT_MS = 15 * 60 * 1000; // Walrus can ~30s+ moi index xong 1 lan "day:"
@@ -424,7 +425,7 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
     '  • ticket_pending_lau {"days":<số ngày tối thiểu từ lúc tạo, mặc định 3>,"name":"<tuỳ chọn, chỉ khi hỏi riêng 1 người>"} — ticket mở đã lâu, tồn đọng',
     '  • ticket_sla {"kind":"qua_han"|"sap_het_han","name":"<tuỳ chọn>","self":<true nếu hỏi của chính mình>} — ticket đã quá hạn SLA / sắp hết hạn',
     "  • tong_quan {} — tổng quan ticket đang mở theo từng người",
-    '  • ticket_loc {"nguoi_raise":"<tên người tạo/raise ticket>","nguoi_xu_ly":"<tên người đang giữ, vd Khoa L2>","cap":"L1"|"L2"|"tat_ca","trang_thai":"dang_mo"|"pending"|"cho_khach"|"dang_o_L2","nhom":"<B2B Portal/DMS/FieldGo...>","days":<mở từ X ngày>,"chi_tiet":<true CHỈ khi người hỏi muốn xem update/action/comment mới nhất, lịch sử trạng thái>} — LỌC SÂU, gồm cả ticket ĐÃ ESCALATE L2 (Level 2). Chỉ điền ô được nhắc. Dùng khi hỏi theo người raise, theo người L2, ticket escalate L2, theo nhóm, hoặc kết hợp nhiều điều kiện.',
+    '  • ticket_loc {"nguoi_raise":"<tên người tạo/raise ticket>","nguoi_xu_ly":"<tên người đang giữ, vd Khoa L2>","cap":"L1"|"L2"|"tat_ca","trang_thai":"dang_mo"|"pending"|"cho_khach"|"dang_o_L2","nhom":"<OrderPortal/DistributorHub/FieldGo...>","days":<mở từ X ngày>,"chi_tiet":<true CHỈ khi người hỏi muốn xem update/action/comment mới nhất, lịch sử trạng thái>} — LỌC SÂU, gồm cả ticket ĐÃ ESCALATE L2 (Level 2). Chỉ điền ô được nhắc. Dùng khi hỏi theo người raise, theo người L2, ticket escalate L2, theo nhóm, hoặc kết hợp nhiều điều kiện.',
     '  • ticket_goi_y {"key":"SUP-xxxxxx"} — đọc TOÀN BỘ 1 ticket (mô tả, comment, lịch sử) rồi tóm tắt đang tới đâu + L1 nên làm gì tiếp. Dùng khi hỏi về 1 ticket CỤ THỂ: "ticket 159589 tới đâu rồi", "L1 cần làm gì tiếp", "tóm tắt ticket X". Nói "ticket đó/ticket đầu tiên" → lấy mã từ hội thoại.',
     "CALL CENTER (tổng đài — số cuộc gọi nhận/miss của từng agent L1). period: hom_nay | hom_qua | thang_nay | thang_truoc | ngay (kèm \"date\":\"DD/MM\"); không nói kỳ → hom_nay; 'MTD', 'từ đầu tháng', 'tháng này' → thang_nay:",
     '  • callcenter_tong_quan {"period":...} — số nhận/miss của CẢ TEAM theo từng agent',
@@ -440,29 +441,29 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
     const r = parseJson(
       await ask({
         system: [
-          "Bạn là bộ điều phối tin nhắn cho bot hỗ trợ team L1 support (FieldGo, DMS, Cooler Audit, Workflow, E-Contract...). Chỉ trả về 1 object JSON:",
+          "Bạn là bộ điều phối tin nhắn cho bot hỗ trợ team L1 support (FieldGo, DistributorHub, CoolerTrack, Workflow, ContractDesk...). Chỉ trả về 1 object JSON:",
           `{"intent":"ask"|"teach"|"weather"${jt ? '|"tool"' : ""},"topic":<số chủ đề đang mở mà tin mới nói tiếp, 0 = chủ đề mới>,"topicLabel":"<khi topic=0: tên chủ đề ≤ 8 từ>","gap":<số thứ tự câu đang chờ, 0 nếu không>,"situation":"<tình huống, ≤ 25 từ, chỉ khi teach>","query":"<chỉ khi ask: câu hỏi viết lại ĐẦY ĐỦ, tự hiểu được không cần đọc hội thoại>"${jt ? ',"tool":"<chỉ khi tool>","params":{},"more":<true/false, chỉ khi tool>' : ""}}`,
           ...(jt
             ? [
                 "- tool: hỏi SỐ LIỆU / DANH SÁCH đang có trên hệ thống: ticket Jira của team (của ai, còn bao nhiêu, pending/tồn lâu, SLA), hoặc cuộc gọi call center (ai nhận/miss bao nhiêu, top 1, tỉ lệ miss, hôm nay/tháng này). Chọn ĐÚNG 1 tool đầu tiên và điền params, KHÔNG viết truy vấn:",
                 TOOL_GUIDE,
-                "  Ví dụ: 'ticket của tôi' → ticket_theo_nguoi {\"self\":true}; 'An còn mấy case/ticket chưa đóng' → ticket_theo_nguoi {\"name\":\"An\"}; 'ticket nào pending lâu' → ticket_pending_lau {\"days\":3}; 'ticket của Bình tồn hơn 10 ngày' → ticket_pending_lau {\"days\":10,\"name\":\"Bình\"}; 'ticket nào sắp trễ SLA' → ticket_sla {\"kind\":\"sap_het_han\"}; 'cả team còn bao nhiêu ticket' → tong_quan {}; 'hôm nay ai miss nhiều nhất' → callcenter_top {\"metric\":\"miss_nhieu\",\"period\":\"hom_nay\"}; 'Chi tháng này nhận bao nhiêu cuộc' → callcenter_agent {\"name\":\"Chi\",\"period\":\"thang_nay\"}; 'call center hôm qua thế nào' → callcenter_tong_quan {\"period\":\"hom_qua\"}; 'tháng này ai tỉ lệ miss cao nhất' → callcenter_top {\"metric\":\"ti_le_miss_cao\",\"period\":\"thang_nay\"}; 'ticket L1 raise đang escalate L2 cho Khoa L2' → ticket_loc {\"cap\":\"L2\",\"nguoi_xu_ly\":\"Khoa L2\"}; 'ticket An raise đã lên L2' → ticket_loc {\"cap\":\"L2\",\"nguoi_raise\":\"An\"}; 'ticket B2B Portal nào đang ở L2 quá 5 ngày' → ticket_loc {\"cap\":\"L2\",\"nhom\":\"B2B Portal\",\"days\":5}; 'show các ticket escalate cho Khoa L2 kèm update/action mới nhất' → ticket_loc {\"cap\":\"L2\",\"nguoi_xu_ly\":\"Khoa L2\",\"chi_tiet\":true}; 'ticket 159589 L1 cần làm gì tiếp' → ticket_goi_y {\"key\":\"SUP-159589\"}; nối tiếp 'kèm comment mới nhất đi' → giữ ô lọc lần trước + \"chi_tiet\":true.",
+                "  Ví dụ: 'ticket của tôi' → ticket_theo_nguoi {\"self\":true}; 'An còn mấy case/ticket chưa đóng' → ticket_theo_nguoi {\"name\":\"An\"}; 'ticket nào pending lâu' → ticket_pending_lau {\"days\":3}; 'ticket của Bình tồn hơn 10 ngày' → ticket_pending_lau {\"days\":10,\"name\":\"Bình\"}; 'ticket nào sắp trễ SLA' → ticket_sla {\"kind\":\"sap_het_han\"}; 'cả team còn bao nhiêu ticket' → tong_quan {}; 'hôm nay ai miss nhiều nhất' → callcenter_top {\"metric\":\"miss_nhieu\",\"period\":\"hom_nay\"}; 'Chi tháng này nhận bao nhiêu cuộc' → callcenter_agent {\"name\":\"Chi\",\"period\":\"thang_nay\"}; 'call center hôm qua thế nào' → callcenter_tong_quan {\"period\":\"hom_qua\"}; 'tháng này ai tỉ lệ miss cao nhất' → callcenter_top {\"metric\":\"ti_le_miss_cao\",\"period\":\"thang_nay\"}; 'ticket L1 raise đang escalate L2 cho Khoa L2' → ticket_loc {\"cap\":\"L2\",\"nguoi_xu_ly\":\"Khoa L2\"}; 'ticket An raise đã lên L2' → ticket_loc {\"cap\":\"L2\",\"nguoi_raise\":\"An\"}; 'ticket OrderPortal nào đang ở L2 quá 5 ngày' → ticket_loc {\"cap\":\"L2\",\"nhom\":\"OrderPortal\",\"days\":5}; 'show các ticket escalate cho Khoa L2 kèm update/action mới nhất' → ticket_loc {\"cap\":\"L2\",\"nguoi_xu_ly\":\"Khoa L2\",\"chi_tiet\":true}; 'ticket 159589 L1 cần làm gì tiếp' → ticket_goi_y {\"key\":\"SUP-159589\"}; nối tiếp 'kèm comment mới nhất đi' → giữ ô lọc lần trước + \"chi_tiet\":true.",
                 "  'ticket của tôi/của mình/của em' (không kèm điều kiện khác) LUÔN là ticket_theo_nguoi {\"self\":true}, kể cả ngay sau 1 lần tra khác.",
                 "  Câu hỏi ĐẦY ĐỦ (tự nêu rõ muốn gì) → xét theo chính câu đó, KHÔNG lấy lại tool/params câu trước. Câu NỐI TIẾP nói tắt ngay sau 1 lần tra (vd 'còn của Bình thì sao', 'chỉ lấy hơn 10 ngày thôi', 'còn hôm qua thì sao', 'còn Chi?') → giữ tool/params của lần tra trước (dòng 'Bot: (đã tra: ...)' trong hội thoại), chỉ đổi phần vừa được nhắc. 'case' trong câu hỏi về ai đó còn bao nhiêu = ticket.",
                 "  more = true khi câu hỏi cần THÊM ngoài 1 lần tra: nhận xét/đánh giá/so sánh dựa trên số liệu ('có đáng lo không', 'ai nên được khen'), hoặc cần tra 2 thứ, hoặc cần kèm quy trình/cách xử lý trong tài liệu. Chỉ xem số/danh sách → false.",
                 "  Hỏi về cách xử lý 1 lỗi (có chữ ticket) thì KHÔNG phải tool mà là ask.",
               ]
             : []),
-          "- Trả lời cho câu bot VỪA HỎI LẠI trong đoạn đang chat (vd 'có rồi', 'chưa', 'bản cũ', 'xem hết') → ask; query = vấn đề gốc + thông tin vừa trả lời (vd 'Cooler Audit đã có trên server nhưng không lên báo cáo: xử lý sao').",
+          "- Trả lời cho câu bot VỪA HỎI LẠI trong đoạn đang chat (vd 'có rồi', 'chưa', 'bản cũ', 'xem hết') → ask; query = vấn đề gốc + thông tin vừa trả lời (vd 'CoolerTrack đã có trên server nhưng không lên báo cáo: xử lý sao').",
           "- ask TRƯỚC TIÊN: người nhắn đang HỎI / XIN bot hướng dẫn (có 'sao', 'gì', 'thế nào', 'ntn', 'không', 'nhỉ', 'hả', '?', 'giải thích', 'trả lời ngắn thôi'...) → ask, KỂ CẢ khi hỏi tiếp/hỏi lại/hỏi rõ hơn về nội dung bot vừa trả lời trong đoạn đang chat.",
           "- teach: người nhắn KHẲNG ĐỊNH cho bot cách làm: đang HƯỚNG DẪN / DẠY / ĐÍNH CHÍNH / BỔ SUNG cách xử lý (L1 phải làm gì, kiểm tra gì, báo user gì, phân loại trường hợp ra sao), kể cả không gõ 'dạy:', kể cả câu mở đầu bằng tình huống ('SR báo X thì mày cần...'), kể cả sửa lại câu bot vừa trả lời ('không phải vậy', 'mày cần phân loại rõ...', 'version mới là ...'), kể cả trả lời cho câu bot vừa báo chưa có tài liệu.",
           "- weather: thật sự hỏi thời tiết/mưa/nắng/nhiệt độ ở đâu đó (chê bot hay cảm thán có chữ 'mưa' KHÔNG tính).",
           "- ask: mọi trường hợp còn lại (câu hỏi nghiệp vụ, tiếng Anh, hỏi chung, kể chuyện, cảm thán, chê, cảm ơn, chào hỏi).",
-          "- topic: đoạn chat có thể có NHIỀU chủ đề xen kẽ (mỗi dòng gắn (#n), danh sách CHỦ ĐỀ ĐANG MỞ). Tin mới NỐI TIẾP / hỏi thêm / trả lời câu bot hỏi lại / bổ sung / dạy / đính chính cho chủ đề nào → số chủ đề đó (kể cả 'quay lại vụ X', câu nói tắt). Hỏi/bàn tiếp về DỮ LIỆU hay NỘI DUNG vừa đưa ra trong 1 chủ đề (vd vừa gửi báo cáo call center rồi hỏi 'ai xứng đáng top 1', 'trao thưởng gì') → chủ đề đó, dù câu tự đứng được. Chỉ mở chủ đề mới (0, đặt topicLabel) khi tin nói về vấn đề/hệ thống KHÁC HẲN, không dính gì tới các chủ đề đang mở (vd đang bàn Cooler Audit rồi hỏi lỗi 504). Không chắc → chủ đề gần nhất. Chào hỏi, cảm ơn, chê bot, đùa → chủ đề gần nhất. Không có chủ đề nào đang mở → 0.",
+          "- topic: đoạn chat có thể có NHIỀU chủ đề xen kẽ (mỗi dòng gắn (#n), danh sách CHỦ ĐỀ ĐANG MỞ). Tin mới NỐI TIẾP / hỏi thêm / trả lời câu bot hỏi lại / bổ sung / dạy / đính chính cho chủ đề nào → số chủ đề đó (kể cả 'quay lại vụ X', câu nói tắt). Hỏi/bàn tiếp về DỮ LIỆU hay NỘI DUNG vừa đưa ra trong 1 chủ đề (vd vừa gửi báo cáo call center rồi hỏi 'ai xứng đáng top 1', 'trao thưởng gì') → chủ đề đó, dù câu tự đứng được. Chỉ mở chủ đề mới (0, đặt topicLabel) khi tin nói về vấn đề/hệ thống KHÁC HẲN, không dính gì tới các chủ đề đang mở (vd đang bàn CoolerTrack rồi hỏi lỗi 504). Không chắc → chủ đề gần nhất. Chào hỏi, cảm ơn, chê bot, đùa → chủ đề gần nhất. Không có chủ đề nào đang mở → 0.",
           "- query và situation viết theo ĐÚNG chủ đề đã chọn ở topic, không lấy nội dung của chủ đề khác.",
           "- gap (khi teach): số thứ tự câu trong danh sách chờ mà chỉ dẫn này dành cho (cùng vấn đề, hoặc sửa câu bot vừa trả lời); 0 nếu không khớp câu nào.",
           "- situation (khi teach): vấn đề/tình huống mà chỉ dẫn xử lý, viết thành 1 câu rõ nghĩa. Ghép được câu chờ thì dựa vào câu đó; không thì lấy từ chính tin nhắn/hội thoại.",
-          "- query (khi ask): câu hỏi nối tiếp hay nói tắt ('vậy bước 2 nâng lên bản nào', 'còn DMS thì sao', 'case đó thế nào rồi') → viết lại thành câu đầy đủ, nêu rõ hệ thống/vấn đề đang nói trong hội thoại (vd 'Cooler Audit không lên server: nâng version app FieldGo lên bản nào, đã ở bản mới thì xử lý sao'). Câu đã đủ nghĩa thì giữ nguyên.",
+          "- query (khi ask): câu hỏi nối tiếp hay nói tắt ('vậy bước 2 nâng lên bản nào', 'còn DistributorHub thì sao', 'case đó thế nào rồi') → viết lại thành câu đầy đủ, nêu rõ hệ thống/vấn đề đang nói trong hội thoại (vd 'CoolerTrack không lên server: nâng version app FieldGo lên bản nào, đã ở bản mới thì xử lý sao'). Câu đã đủ nghĩa thì giữ nguyên.",
         ].join("\n"),
         prompt: [
           "HỘI THOẠI GẦN ĐÂY:",
@@ -576,7 +577,7 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
 
   const system = [
     'Bạn là "L1 Assistant", trợ lý nội bộ team L1 support hệ sinh thái SFA',
-    "(FieldGo, DMS, Cooler Audit, Workflow, B2B Portal, E-Contract, Survey App).",
+    "(FieldGo, DistributorHub, CoolerTrack, Workflow, OrderPortal, ContractDesk, Survey App).",
     "Giúp member L1 tra cứu quy trình xử lý issue và escalate đúng đầu mối.",
     "",
     "Bạn có 3 vai:",
@@ -592,7 +593,7 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
     "",
     "Vai (A) - nghiệp vụ support:",
     "- Chỉ được dùng phần WORKFLOW LIÊN QUAN và BỘ NHỚ cung cấp kèm theo mỗi câu hỏi (đã lọc sẵn cái khớp nhất). TUYỆT ĐỐI không bịa quy trình, không dùng kiến thức chung để chế bước.",
-    "- MỌI câu hỏi về hệ thống/app nội bộ (FieldGo, DMS, Cooler Audit, E-Contract, Survey App, B2B Portal, Workflow, NPP, SR, outlet, route...) là vai (A): TUYỆT ĐỐI không trả lời bằng kiến thức chung/đoán (không dùng kind other). Không có trong tài liệu/bộ nhớ → kind missing.",
+    "- MỌI câu hỏi về hệ thống/app nội bộ (FieldGo, DistributorHub, CoolerTrack, ContractDesk, Survey App, OrderPortal, Workflow, NPP, SR, outlet, route...) là vai (A): TUYỆT ĐỐI không trả lời bằng kiến thức chung/đoán (không dùng kind other). Không có trong tài liệu/bộ nhớ → kind missing.",
     "- TUYỆT ĐỐI không bịa link/URL, email, số điện thoại, tên người/team phụ trách. Chỉ dùng nếu có NGUYÊN VĂN trong nguồn. Không có → kind missing (kể cả câu hỏi ngắn kiểu 'link ... là gì').",
     "- HỘI THOẠI GẦN ĐÂY (đoạn đang chat, nguyên văn cả câu bot vừa trả lời), [Ghi nhớ tự động] và [Trao đổi trước đây trong nhóm này] dùng để hiểu ngữ cảnh và trả lời nối tiếp cho khớp (người hỏi 'còn bước 2 thì sao', 'case hôm qua thế nào' → dựa vào đó), KHÔNG phải nguồn workflow: không lấy nội dung chat để chế các bước xử lý.",
     '- QUAN TRỌNG: chỉ trả lời nếu có workflow khớp ĐÚNG vấn đề được hỏi. Nếu phần WORKFLOW LIÊN QUAN trống, HOẶC chỉ có workflow của cùng hệ thống nhưng KHÁC vấn đề (vd hỏi lỗi quét QR mà chỉ có workflow lỗi login) → coi như CHƯA CÓ.',
@@ -754,8 +755,8 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
   async function altQuery(question, context, tried) {
     const out = await ask({
       system: [
-        "Câu hỏi dưới đây tra kho tài liệu support app bán hàng (FieldGo, DMS, Cooler Audit, Workflow, E-Contract...) KHÔNG ra kết quả.",
-        "Viết lại 1 câu tìm kiếm KHÁC, dùng thuật ngữ hay gặp trong tài liệu (vd 'tủ lạnh/verify tủ' → 'Cooler Audit', 'mất tuyến/đơn không có tuyến' → 'Null Route RouteID', 'không đồng bộ' → 'delta sync', 'đơn' → 'order'), nêu rõ hệ thống/app.",
+        "Câu hỏi dưới đây tra kho tài liệu support app bán hàng (FieldGo, DistributorHub, CoolerTrack, Workflow, ContractDesk...) KHÔNG ra kết quả.",
+        "Viết lại 1 câu tìm kiếm KHÁC, dùng thuật ngữ hay gặp trong tài liệu (vd 'tủ lạnh/verify tủ' → 'CoolerTrack', 'mất tuyến/đơn không có tuyến' → 'Null Route RouteID', 'không đồng bộ' → 'delta sync', 'đơn' → 'order'), nêu rõ hệ thống/app.",
         "Chỉ trả về đúng 1 câu, không giải thích. Câu hỏi không phải về hệ thống nội bộ → trả về chữ NONE.",
       ].join("\n"),
       prompt: `${context ? `Hội thoại gần đây:\n${context}\n\n` : ""}Câu hỏi: ${question}\nĐã tra bằng: ${tried}`,
@@ -792,8 +793,12 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
 
   async function answer({ chatId, userId, userName, question, context, searchQuery, retried = false }) {
     // Tra kho bang cau da viet lai du nghia (cau noi tiep "vay buoc 2 nang len ban nao" khong
-    // co chu "Cooler Audit" -> tra truot, bao "chua co" - test 27/09). LLM van doc cau goc.
+    // co chu "CoolerTrack" -> tra truot, bao "chua co" - test 27/09). LLM van doc cau goc.
     const sq = searchQuery && searchQuery !== question ? searchQuery : question;
+    let routeHint = null;
+    const hintDeadline = Date.now() + 3000;
+    if (routeHints) Promise.resolve().then(() => memory.recall(escalationNamespace, sq, { limit: 5 }))
+      .then((hits) => { if (Date.now() <= hintDeadline) routeHint = readRouteHint(hits, selectRules(hits, null, sq)); }).catch(() => {});
     const codes = extractCodes(question);
     const wantsHandover = HANDOVER_Q.test(question);
 
@@ -1000,8 +1005,8 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
 
     if (kind === "degraded") {
       reply = usedFallback
-        ? "{yellow}⚠️ Bộ nhớ Walrus đang chậm/lỗi. Mình đã tra bản dự phòng nhưng chưa thấy nội dung khớp đúng vấn đề.{/yellow}\nBạn hỏi lại sau ít phút để mình tra đầy đủ nhé."
-        : "{yellow}⚠️ Bộ nhớ Walrus đang phản hồi chậm/lỗi nên mình chưa tra được kho kiến thức.{/yellow}\nBạn hỏi lại sau ít phút nhé.";
+        ? "{yellow}⚠️ Bộ nhớ đang chậm/lỗi. Mình đã tra bản dự phòng nhưng chưa thấy nội dung khớp đúng vấn đề.{/yellow}\nBạn hỏi lại sau ít phút để mình tra đầy đủ nhé."
+        : "{yellow}⚠️ Bộ nhớ đang phản hồi chậm/lỗi nên mình chưa tra được kho kiến thức.{/yellow}\nBạn hỏi lại sau ít phút nhé.";
     }
     if (kind === "workflow" && Array.isArray(r.steps)) {
       const c = await maybeClarify({ question, context, steps: r.steps });
@@ -1020,7 +1025,7 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
       }
     }
     // Sap bao "chua co" -> tu tra lai 1 lan bang cach dien dat khac (thuat ngu trong tai lieu:
-    // "tu lanh" -> Cooler Audit, "mat tuyen" -> Null Route...). Walrus loi thi da la degraded.
+    // "tu lanh" -> CoolerTrack, "mat tuyen" -> Null Route...). Walrus loi thi da la degraded.
     if (kind === "missing" && !retried) {
       const alt = await altQuery(question, context, sq);
       if (alt) return answer({ chatId, userId, userName, question, context, searchQuery: alt, retried: true });
@@ -1075,7 +1080,9 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
       reply = md(r?.text || looseText(raw) || raw);
     }
 
-    await logUsage({ kind: "question", user: userName, codes, memoryHits: stats, answer: kind, text: question, searchQuery: sq !== question ? sq : undefined, secondOpinion, mergedSkipped: mergedSkipped || undefined, source: sourceLabel || undefined, provenance, reply });
+    const usedHint = !/dịch|phiên âm|tiếng anh|đọc sao/iu.test(question) && ["workflow", "missing", "clarify"].includes(kind) ? routeHint : null;
+    if (usedHint) reply += `\n${fmtRouteHint(usedHint, r || {})}`;
+    await logUsage({ kind: "question", user: userName, codes, memoryHits: stats, answer: kind, text: question, searchQuery: sq !== question ? sq : undefined, secondOpinion, mergedSkipped: mergedSkipped || undefined, source: sourceLabel || undefined, provenance, reply, routeHint: usedHint ? { category: usedHint.category, route: usedHint.route, confidence: usedHint.confidence } : undefined });
     return [reply];
   }
 
@@ -1356,7 +1363,7 @@ export function createAssistant({ memory, ask, askStrong = ask, knowledge, direc
     const r = parseJson(
       await ask({
         system: [
-          "Bạn đọc ẢNH CHỤP MÀN HÌNH app nội bộ (FieldGo, DMS, Cooler Audit, E-Contract, Survey App, Workflow...) mà người dùng gửi để hỏi cách xử lý. Chỉ trả về 1 object JSON:",
+          "Bạn đọc ẢNH CHỤP MÀN HÌNH app nội bộ (FieldGo, DistributorHub, CoolerTrack, ContractDesk, Survey App, Workflow...) mà người dùng gửi để hỏi cách xử lý. Chỉ trả về 1 object JSON:",
           '{"read":"<CHÉP NGUYÊN VĂN các chữ quan trọng trên màn hình: tiêu đề/thông báo lỗi, mã lỗi, responseCode, tên màn hình, version nếu thấy>","app":"<tên app nếu nhận ra, không chắc thì rỗng>","question":"<1 câu hỏi ĐẦY ĐỦ để tra quy trình xử lý lỗi này, kết hợp chú thích của người gửi>","unclear":<true nếu ảnh mờ/không có chữ đọc được/không phải màn hình lỗi>}',
           "- TUYỆT ĐỐI không đoán chữ không đọc rõ; chỗ nào mờ thì bỏ qua. Không tự thêm nguyên nhân hay cách xử lý.",
           "- Bỏ qua thanh trạng thái điện thoại (giờ, pin, sóng) và chữ quảng cáo/logo.",

@@ -106,7 +106,7 @@ scene(3, "Another person, another chat, later → the bot remembers who taught i
 await say("Chi", "dm-chi", "SR không in hoá đơn qua máy in bluetooth được, làm sao giờ?", "A rep can't print invoices on the bluetooth printer, what do I do?");
 
 scene(4, "A rep calls back, a different agent picks up", "An logs a call for rep SR-1042. Later Binh answers SR-1042's call-back and asks for the history — stored per customer code.");
-await say("An", "group", "log: SR-1042 gọi, đơn ở OUT-0007 không vào DMS, báo Outlet not mapped, đã chuyển DMS team, hẹn phản hồi thứ 3", "log: SR-1042 called, order at OUT-0007 not reaching DMS, error 'Outlet not mapped', sent to DMS team, promised a reply on Tuesday");
+await say("An", "group", "log: SR-1042 gọi, đơn ở OUT-0007 không vào DistributorHub, báo Outlet not mapped, đã chuyển DistributorHub team, hẹn phản hồi thứ 3", "log: SR-1042 called, order at OUT-0007 not reaching DistributorHub, error 'Outlet not mapped', sent to DistributorHub team, promised a reply on Tuesday");
 await waitIndexed();
 await say("Binh", "dm-binh", "SR-1042 gọi lại, có lịch sử gì không?", "SR-1042 is calling back, any history?");
 
@@ -116,9 +116,9 @@ await waitIndexed();
 await say("Dung", "group", "ca trước bàn giao gì vậy?", "What did the previous shift hand over?");
 
 scene(6, "Spotting a widespread incident across agents", "Three different reps report the same error to different agents within an hour. Only shared memory can see the pattern.");
-await say("Binh", "group", "log: SR-1077 báo đơn không đẩy sang DMS, treo ở trạng thái Đang gửi", "log: SR-1077 reports orders not pushed to DMS, stuck in 'Sending'");
+await say("Binh", "group", "log: SR-1077 báo đơn không đẩy sang DistributorHub, treo ở trạng thái Đang gửi", "log: SR-1077 reports orders not pushed to DistributorHub, stuck in 'Sending'");
 await waitIndexed();
-await say("Chi", "group", "log: SR-2031 báo đơn không vào DMS, kẹt ở Đang gửi", "log: SR-2031 reports orders not reaching DMS, stuck in 'Sending'");
+await say("Chi", "group", "log: SR-2031 báo đơn không vào DistributorHub, kẹt ở Đang gửi", "log: SR-2031 reports orders not reaching DistributorHub, stuck in 'Sending'");
 
 console.log(`\n${C.yellow}${"━".repeat(72)}${C.reset}\n${C.bold}Done.${C.reset} Every memory above is SEAL-encrypted and stored on Walrus mainnet under ${cfg.namespacePrefix}:*`);
 console.log("Code: https://github.com/neweraXX/walrus-l1-assistant");

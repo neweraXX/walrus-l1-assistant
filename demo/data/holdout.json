@@ -1,0 +1,62 @@
+[
+  {
+    "summary": "DistributorHub sign-in still points at an unavailable device",
+    "description": "The staff member replaced a damaged phone. Their second-factor profile is still attached to it.",
+    "label": "VENDOR",
+    "target": "Northwind Systems"
+  },
+  {
+    "summary": "Cannot complete the second-factor challenge in DistributorHub",
+    "description": "The authenticator profile disappeared during a factory reset; ordinary password recovery does not restore it.",
+    "label": "VENDOR",
+    "target": "Northwind Systems"
+  },
+  {
+    "summary": "FieldGo rejects a draft with an empty route association",
+    "description": "The customer and products are available, yet the order reference record contains no delivery route.",
+    "label": "L2",
+    "target": "Data Team"
+  },
+  {
+    "summary": "No delivery assignment when sending a FieldGo order",
+    "description": "The route lookup returns an empty association for a newly opened order.",
+    "label": "L2",
+    "target": "Data Team"
+  },
+  {
+    "summary": "FieldGo keeps waiting after connectivity recovered",
+    "description": "The device is online again but the synchronization overlay never closes.",
+    "label": "L1",
+    "target": ""
+  },
+  {
+    "summary": "FieldGo sync wheel continues after changing networks",
+    "description": "The connection is stable and other screens work; only the current sync task stays spinning.",
+    "label": "L1",
+    "target": ""
+  },
+  {
+    "summary": "CoolerTrack cannot reconnect a previously paired sensor",
+    "description": "Discovery finds the sensor, but the old pairing registration was lost after its battery was removed.",
+    "label": "L1",
+    "target": ""
+  },
+  {
+    "summary": "CoolerTrack setup stopped before pairing completed",
+    "description": "Bluetooth is available and the nearby sensor is visible, but its first pairing session was interrupted.",
+    "label": "L1",
+    "target": ""
+  },
+  {
+    "summary": "OrderPortal applies the wrong campaign amount to the cart",
+    "description": "A live promotion is shown in the catalogue, while checkout takes a different price from the campaign table.",
+    "label": "L2",
+    "target": "Commerce Data Team"
+  },
+  {
+    "summary": "OrderPortal paid order remains awaiting confirmation",
+    "description": "The managed payment notification endpoint rejects a valid signature from its hosted callback connector.",
+    "label": "VENDOR",
+    "target": "Northwind Systems"
+  }
+]
