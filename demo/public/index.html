@@ -115,7 +115,7 @@ async function refreshRules() {
   } catch(e) { status('rules-status', e.message, true); } finally { refreshing = false; $('refresh').disabled = false; }
 }
 async function refreshHealth() {
-  try { health = await api('health'); $('health').replaceChildren(node('strong', 'Storage health · epoch ' + health.epoch), node('span', health.blobCount + ' wallet blobs · ' + (health.safeUntil ? 'Earliest expiry ≈ ' + health.safeUntil : 'No certified blobs yet') + '\n' + health.transport)); renderProofs(); }
+  try { health = await api('health'); $('health').replaceChildren(node('strong', 'Storage health · epoch ' + health.epoch), node('span', health.blobCount + ' wallet blobs · ' + (health.safeUntil ? 'Bot memory safe until ≈ ' + health.safeUntil : 'No certified memory yet') + '\n' + health.transport)); renderProofs(); }
   catch(e) { $('health').replaceChildren(node('strong', 'Storage health unavailable'), node('span', e.message)); }
 }
 function fillTicket() {

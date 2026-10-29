@@ -225,9 +225,22 @@ export function createHandler(name, injected, limiter = sharedLimiter) {
           stage = "chain.health";
           const chain = await deps.getChain({ signal: controller.signal });
           const [epoch, blobs] = await Promise.all([chain.getWalrusEpoch({ signal: controller.signal }), chain.listMemoryBlobs({ signal: controller.signal })]);
-          const ends = blobs.filter((b) => b.certifiedEpoch != null).map((b) => Number(b.endEpoch)).filter(Number.isFinite);
-          const endEpoch = ends.length ? Math.min(...ends) : null;
-          result = { epoch, blobCount: blobs.length, endEpoch,
+          // Chi tinh blob CUA MEMORY (co metadata memwal_job_id): vi con giu blob khac (vd ban ghi
+          // game) het han som hon -> ngay "an toan" bi bao sai. Doc metadata tu blob het han som nhat
+          // tro len, toi da 8 lan, dung o blob memory dau tien.
+          const certified = blobs.filter((b) => b.certifiedEpoch != null && Number.isFinite(Number(b.endEpoch)))
+            .sort((a, b) => Number(a.endEpoch) - Number(b.endEpoch));
+          let endEpoch = null, otherBlobs = 0;
+          const readMeta = typeof chain.getBlobMetadata === "function"
+            ? (b) => Promise.resolve(chain.getBlobMetadata(b.objectId, { signal: controller.signal })).catch(() => ({}))
+            : async () => ({ memwal_job_id: "unknown" }); // khong doc duoc metadata -> giu cach tinh cu
+          for (const b of certified.slice(0, 8)) {
+            const meta = await readMeta(b);
+            if (meta?.memwal_job_id) { endEpoch = Number(b.endEpoch); break; }
+            otherBlobs++;
+          }
+          if (endEpoch === null && certified.length > 8) endEpoch = Number(certified[8].endEpoch);
+          result = { epoch, blobCount: blobs.length, memoryEndEpoch: endEpoch, endEpoch, skippedNonMemoryBlobs: otherBlobs,
             safeUntil: endEpoch === null ? null : new Date(Date.now() + Math.max(0, endEpoch - epoch) * 14 * 86400000).toISOString().slice(0, 10),
             approximate: true, transport: "Tatum Sui gRPC" };
         }
